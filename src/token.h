@@ -1,6 +1,7 @@
 //
 // Created by 冯泽灵 on 2017/1/2.
 //
+#include <string>
 
 #ifndef PROLOG0_TOKENS_H
 #define PROLOG0_TOKENS_H
@@ -26,9 +27,10 @@ public:
     };
 
 private:
-    token_type tok;
+    token_type tok_;
+    const char* value_;
 };
 
-static const char *get_name(token::token_type);
+const char *get_name(token::token_type);
 
 #endif //PROLOG0_TOKENS_H

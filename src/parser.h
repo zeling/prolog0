@@ -8,10 +8,15 @@
 #define PROLOG0_PARSER_H
 
 
-class parser {
-private:
-    std::
-};
+namespace prolog0 { namespace parser {
+
+        class parser {
+        public:
+
+        };
+
+    }
+}
 
 
 #endif //PROLOG0_PARSER_H
