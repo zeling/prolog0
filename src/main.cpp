@@ -7,7 +7,6 @@ int main() {
     std::istringstream is("person(zeling).\nperson(X).");
     scanner sc(is);
     token::token_type tok;
-    std::string literal {};
     do {
         tok = sc.next();
         switch (tok) {
@@ -20,7 +19,6 @@ int main() {
             case token::token_type::NUM_TOKENS:
                 break;
         }
-        sc.skip_whitespace();
-    } while (tok != token::token_type::NUM_TOKENS);
+    } while (tok != token::token_type::EOS);
     return 0;
 }
