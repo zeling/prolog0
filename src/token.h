@@ -1,10 +1,7 @@
-//
-// Created by 冯泽灵 on 2017/1/2.
-//
-#include <string>
+#pragma once
 
-#ifndef PROLOG0_TOKENS_H
-#define PROLOG0_TOKENS_H
+#include <string>
+#include <experimental/optional>
 
 #define TOKEN_LIST(T)  \
     T(LPAREN, "(")     \
@@ -13,13 +10,19 @@
     T(PERIOD, ".")     \
     T(CUT, "!")        \
     T(COLONDASH, ":-") \
+    T(QMDASH, "?-")    \
+                       \
     T(ATOM, 0)         \
     T(VARIABLE, 0)     \
+                       \
+    T(EOS, "EOS")      \
 
+namespace stdx = std::experimental;
 
 class token {
+
 public:
-    enum token_type {
+    enum type {
 #define T(t, v) t,
         TOKEN_LIST(T)
         NUM_TOKENS
@@ -27,10 +30,43 @@ public:
     };
 
 private:
-    token_type tok_;
-    const char* value_;
+    enum type _type;
+
+    /*
+    struct pos {
+        unsigned long row;
+        unsigned long col;
+        std::string filename;
+
+        pos(unsigned long row, unsigned long col, std::string filename)
+                : row(row), col(col), filename(std::move(filename)) {}
+
+        pos(const pos &) = delete;
+        pos(pos &&) = default;
+        pos &operator=(const pos &) = delete;
+        pos &operator=(pos &&) = default;
+    } _pos;
+     */
+
+    stdx::optional<std::string> _literal = {};
+
+public:
+    /*
+    token(type type, unsigned long row, unsigned long col, std::string filename, std::string literal)
+        : _type(type), _pos(row, col, std::move(filename)), _literal(std::move(literal)) {}
+        */
+    token(): _type(type::NUM_TOKENS) {}
+    token(type type): _type(type) {}
+    token(type type, std::string literal): _type(type), _literal(std::move(literal)) {}
+    token(const token &) = delete;
+    token(token &&) = default;
+    token &operator=(token &&) = default;
+    token &operator=(const token &) = delete;
+
+
+    std::string literal();
+    std::string name();
+    type type() { return _type; }
 };
 
-const char *get_name(token::token_type);
 
-#endif //PROLOG0_TOKENS_H

@@ -4,21 +4,21 @@
 #include "token.h"
 
 int main() {
-    std::istringstream is("person(zeling).\nperson(X).");
+    std::istringstream is("person(zeling).\nperson(X):-hello. ?- person(Y).");
     scanner sc(is);
-    token::token_type tok;
+    token tok;
     do {
         tok = sc.next();
-        switch (tok) {
-            case token::token_type::ATOM:
-            case token::token_type::VARIABLE:
-                std::cout << sc.current_literal() << ' ';
+        switch (tok.type()) {
+            case token::type::ATOM:
+            case token::type::VARIABLE:
+                std::cout << tok.literal() << ' ';
                 break;
             default:
-                std::cout << std::string{get_name(tok)} << ' ';
-            case token::token_type::NUM_TOKENS:
+                std::cout << tok.name() << ' ';
+            case token::type::NUM_TOKENS:
                 break;
         }
-    } while (tok != token::token_type::EOS);
+    } while (tok.type() != token::type::EOS);
     return 0;
 }

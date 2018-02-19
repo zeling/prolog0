@@ -1,26 +1,20 @@
-//
-// Created by 冯泽灵 on 2017/1/2.
-//
+#pragma once
 
-#ifndef PROLOG0_SCANNER_H
-#define PROLOG0_SCANNER_H
-
-#include "token.h"
-#include <string>
 #include <iostream>
+#include "token.h"
 
 class scanner {
+    std::istream &_input;
+    char _literal_buffer[256];
+
+    typedef enum token::type token_type;
+
+    token_type do_scan();
+    void do_collect_literal();
+
 public:
-    explicit scanner(std::istream &in): is_(in) {}
-    scanner(const scanner &scanner) = delete;
-    scanner(scanner &&) = delete;
-    token::token_type next();
-    std::string current_literal();
-    void skip_whitespace();
-private:
-    std::istream &is_;
-    char literal_buffer_[256];
+    explicit scanner(std::istream &input): _input(input) {}
+    token next();
 };
 
 
-#endif //PROLOG0_SCANNER_H

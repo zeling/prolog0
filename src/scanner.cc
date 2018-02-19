@@ -2,62 +2,66 @@
 // Created by 冯泽灵 on 2017/1/2.
 //
 
+#include <algorithm>
 #include "scanner.h"
 
-static void collect_literal(std::istream &is, char first, char *buf);
-
-
 /* return tokens, NUM_TOKENS is returned if not recognized */
-token::token_type scanner::next() {
-    using tok = token::token_type;
+scanner::token_type scanner::do_scan() {
+    _input >> std::ws;
     char ch;
-    is_.get(ch);
+    _input.get(ch);
     switch (ch) {
         case '(':
-            return tok::LPAREN;
+            return token_type::LPAREN;
         case ')':
-            return tok::RPAREN;
+            return token_type::RPAREN;
         case ',':
-            return tok::COMMA;
+            return token_type::COMMA;
         case '.':
-            return tok::PERIOD;
+            return token_type::PERIOD;
         case '!':
-            return tok::CUT;
+            return token_type::CUT;
         case ':':
-            is_.get(ch);
-            if (ch == '-') return tok::COLONDASH;
-            else return tok::NUM_TOKENS;
+            _input.get(ch);
+            if (ch == '-') return token_type::COLONDASH;
+            else return token_type::NUM_TOKENS;
+        case '?':
+            _input.get(ch);
+            if (ch == '-') return token_type::QMDASH;
+            else return token_type::NUM_TOKENS;
+        case EOF:
+        case '\0':
+            return token_type::EOS;
         default:
             if (std::isupper(ch)) {
-                collect_literal(is_, ch, literal_buffer_);
-                return tok::VARIABLE;
+                _input.unget();
+                do_collect_literal();
+                return token_type::VARIABLE;
             } else if (std::islower(ch)) {
-                collect_literal(is_, ch, literal_buffer_);
-                return tok::ATOM;
+                _input.unget();
+                do_collect_literal();
+                return token_type::ATOM;
             } else {
-                return tok::NUM_TOKENS;
+                return token_type::NUM_TOKENS;
             }
     }
 }
 
-std::string scanner::current_literal() {
-    return { literal_buffer_ };
+void scanner::do_collect_literal() {
+    char *d_out = _literal_buffer;
+    auto it = std::istream_iterator<char>(_input);
+    auto eof = std::istream_iterator<char>();
+    while (it != eof && std::isalpha(*it)) {
+        *d_out++ = *it++;
+    }
+    _input.unget();
+    *d_out = '\0';
 }
 
-void scanner::skip_whitespace() {
-    char ch;
-    do {
-        is_.get(ch);
-    } while (std::isspace(ch));
-    is_.unget();
-}
-
-void collect_literal(std::istream &is, char first, char *buf) {
-    int lit_idx = 0;
-    do {
-        buf[lit_idx++] = first;
-        is.get(first);
-    } while (isalnum(first));
-    is.unget();
-    buf[lit_idx] = '\0';
+token scanner::next() {
+    token_type type = do_scan();
+    if (type == token_type::ATOM || type == token_type::VARIABLE) {
+        return token(type, std::string(_literal_buffer));
+    }
+    return token(type);
 }
