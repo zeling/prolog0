@@ -12,9 +12,12 @@ class scanner {
     token_type do_scan();
     void do_collect_literal();
 
+    stdx::optional<token> _look_ahead;
+
 public:
     explicit scanner(std::istream &input): _input(input) {}
     token next();
+    void push_back(token);
 };
 
 

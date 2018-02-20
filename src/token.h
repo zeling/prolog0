@@ -2,6 +2,7 @@
 
 #include <string>
 #include <experimental/optional>
+#include "ast.h"
 
 #define TOKEN_LIST(T)  \
     T(LPAREN, "(")     \
@@ -65,8 +66,25 @@ public:
 
 
     std::string literal();
-    std::string name();
-    type type() { return _type; }
+    std::string name() const;
+    type type() const { return _type; }
+
+
+    bool operator==(const token &rhs) {
+        if (_type != rhs._type) {
+            return false;
+        }
+
+        if (_type == type::VARIABLE || _type == type::ATOM) {
+            return *_literal == *rhs._literal;
+        }
+
+        return true;
+    }
+
+    bool operator!=(const token &rhs) {
+        return !(*this == rhs);
+    }
 };
 
 

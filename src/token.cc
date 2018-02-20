@@ -18,6 +18,6 @@ std::string token::literal() {
     return std::move(ret);
 }
 
-std::string token::name() {
+std::string token::name() const {
     return token_names[_type];
 }

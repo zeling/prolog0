@@ -59,9 +59,18 @@ void scanner::do_collect_literal() {
 }
 
 token scanner::next() {
+    if (_look_ahead) {
+        auto tok = std::move(*_look_ahead);
+        _look_ahead = {};
+        return std::move(tok);
+    }
     token_type type = do_scan();
     if (type == token_type::ATOM || type == token_type::VARIABLE) {
         return token(type, std::string(_literal_buffer));
     }
     return token(type);
+}
+
+void scanner::push_back(token t) {
+    _look_ahead.emplace(std::move(t));
 }

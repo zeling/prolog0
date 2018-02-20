@@ -9,7 +9,7 @@
 
 class term {
     std::string _name;
-    const enum kind {
+    enum kind {
         variable,
         atom,
         structure
@@ -21,12 +21,15 @@ class term {
 
     term(variable_t, std::string name): _name(std::move(name)), _kind(kind::variable) {}
     term(atom_t, std::string name): _name(std::move(name)), _kind(kind::atom) {}
-    term(std::string name, std::initializer_list<term> ilist):
-            _name(std::move(name)), _kind(kind::structure), _args(ilist) {}
     term(std::string name, std::vector<term> args):
             _name(std::move(name)), _kind(kind::structure), _args(std::move(args)) {}
 
 public:
+    term(const term &) = delete;
+    term(term &&) = default;
+    term &operator=(const term &) = delete;
+    term &operator=(term &&) = default;
+
     const std::string &name() const & noexcept {
         return _name;
     }
@@ -45,14 +48,12 @@ public:
 
     friend term make_variable(std::string name);
     friend term make_atom(std::string name);
-    friend term make_structure(std::string name, std::initializer_list<term> ilist);
     friend term make_structure(std::string name, std::vector<term> args);
     friend std::ostream &operator<<(std::ostream &, const term &t);
 };
 
 term make_variable(std::string name);
 term make_atom(std::string name);
-term make_structure(std::string name, std::initializer_list<term> ilist);
 term make_structure(std::string name, std::vector<term> args);
 
 /*

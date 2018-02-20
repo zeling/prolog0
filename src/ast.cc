@@ -28,10 +28,6 @@ std::ostream &operator<<(std::ostream &os, const term &t) {
     return os;
 }
 
-term make_structure(std::string name, std::initializer_list<term> ilist) {
-    return term(std::move(name), ilist);
-}
-
 term make_structure(std::string name, std::vector<term> args) {
     return term(std::move(name), std::move(args));
 }
