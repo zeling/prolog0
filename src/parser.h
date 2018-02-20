@@ -21,6 +21,6 @@ public:
     parser(parser&&) = default;
 
     term parse_term();
-
+    term parse_query();
 };
 

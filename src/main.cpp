@@ -4,12 +4,13 @@
 #include "token.h"
 
 #include "ast.h"
+#include "wam.h"
 #include "parser.h"
 
 //variable v("hello");
 
 int main() {
-    std::istringstream is("person(zeling, male, shanghai).\nperson(X):-hello. ?- person(Y).");
+    std::istringstream is("person(zeling, male, shanghai) ?-  person(X, Y, shanghai).\nperson(X):-hello. ?- person(Y).");
     scanner sc(is);
     token tok;
 
@@ -20,6 +21,7 @@ int main() {
 
     try {
         std::cout << p.parse_term() << std::endl;
+        std::cout << p.parse_query() << std::endl;
     } catch (const parser_error &e) {
         std::cout << e.what() << std::endl;
     }
@@ -37,5 +39,10 @@ int main() {
                 break;
         }
     } while (tok.type() != token::type::EOS);
+
+    wam m;
+    std::fill(m.real_heap_base(), m.real_heap_base() + 10, 'A');
+    m.real_heap_base()[10] = '\0';
+    std::cout << m.real_heap_base();
     return 0;
 }

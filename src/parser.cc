@@ -1,7 +1,3 @@
-//
-// Created by 冯泽灵 on 2017/1/2.
-//
-
 #include "parser.h"
 #include "ast.h"
 
@@ -46,5 +42,13 @@ std::vector<term> parser::parse_list(P p, token delimiter, Pred end) {
             throw parser_error("expected delimiter " + delimiter.name());
         }
     }
+}
+
+term parser::parse_query() {
+    token t = _scanner.next();
+    if (t.type() != token::QMDASH) {
+        throw parser_error("expected QMDASH");
+    }
+    return parse_term();
 }
 

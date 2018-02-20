@@ -26,9 +26,9 @@ class term {
 
 public:
     term(const term &) = delete;
-    term(term &&) = default;
+    term(term &&) noexcept = default;
     term &operator=(const term &) = delete;
-    term &operator=(term &&) = default;
+    term &operator=(term &&) noexcept = default;
 
     const std::string &name() const & noexcept {
         return _name;
@@ -55,6 +55,27 @@ public:
 term make_variable(std::string name);
 term make_atom(std::string name);
 term make_structure(std::string name, std::vector<term> args);
+
+
+class query {
+    term _term;
+public:
+    query(term term): _term(std::move(term)) {}
+//    query(const query &) = delete;
+//    query(query &&) = default;
+//    query &operator=(const query &) = delete;
+//    query &operator=(query &&) = default;
+
+    const ::term &term() const & noexcept {
+        return _term;
+    }
+
+    ::term term() && noexcept {
+        return std::move(_term);
+    }
+
+    friend std::ostream &operator<<(std::ostream &, const query &);
+};
 
 /*
 namespace detail {

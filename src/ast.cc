@@ -28,6 +28,11 @@ std::ostream &operator<<(std::ostream &os, const term &t) {
     return os;
 }
 
+std::ostream &operator<<(std::ostream &os, const query &q) {
+    os << "?-" << q.term();
+    return os;
+}
+
 term make_structure(std::string name, std::vector<term> args) {
     return term(std::move(name), std::move(args));
 }
