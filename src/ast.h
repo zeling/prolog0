@@ -15,18 +15,52 @@ namespace ast {
     class rule;
     class query;
 
+    class variable;
+    class structure;
+
     namespace detail {
-        struct term_impl {
-            std::string name;
-        };
+        struct term_impl;
         struct program_impl;
         struct rule_impl;
         struct query_impl;
     }
 
     class term : public pimpl<detail::term_impl> {
-        term(std::string name): super_t(new impl_t {std::move(name)}) {}
+    public:
+        term(std::string name);
+        variable as_variable () &&;
+        structure as_structure () &&;
     };
+
+    class variable : public pimpl<detail::term_impl> {
+    };
+
+    class structure : public pimpl<detail::term_impl> {
+
+    };
+
+
+    namespace detail {
+        struct term_impl {
+            union {
+                variable var;
+                structure str;
+            } u;
+
+            term_impl(variable var) {
+                new(&u.var) term_impl(std::move(var));
+            }
+
+            term_impl(structure str) {
+                new(&u.str) structure(std::move(str));
+            }
+        };
+        struct program_impl {};
+        struct rule_impl{};
+        struct query_impl{};
+    }
+
+
 }
 
 

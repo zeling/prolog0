@@ -6,6 +6,7 @@ template <typename Impl>
 class pimpl {
 protected:
     Impl *_impl;
+
     using super_t = pimpl<Impl>;
     using impl_t = Impl;
 
