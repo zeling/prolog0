@@ -6,10 +6,27 @@
 #include <initializer_list>
 #include <assert.h>
 
+#include "util.h"
+
 namespace ast {
+
     class term;
     class program;
+    class rule;
     class query;
+
+    namespace detail {
+        struct term_impl {
+            std::string name;
+        };
+        struct program_impl;
+        struct rule_impl;
+        struct query_impl;
+    }
+
+    class term : public pimpl<detail::term_impl> {
+        term(std::string name): super_t(new impl_t {std::move(name)}) {}
+    };
 }
 
 

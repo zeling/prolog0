@@ -51,7 +51,7 @@ void scanner::do_collect_literal() {
     char *d_out = _literal_buffer;
     auto it = std::istream_iterator<char>(_input);
     auto eof = std::istream_iterator<char>();
-    while (it != eof && std::isalpha(*it)) {
+    while (it != eof && (std::isalpha(*it) || *it == '_')) {
         *d_out++ = *it++;
     }
     _input.unget();

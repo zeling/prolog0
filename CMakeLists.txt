@@ -4,4 +4,4 @@ project(prolog0)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 
 file(GLOB SOURCE_FILES "src/*.cc")
-add_executable(prolog0 ${SOURCE_FILES} src/main.cpp src/ast.cc src/wam.cc src/wam.h src/inst.cc src/inst.h src/codegen.cc src/codegen.h)
+add_executable(prolog0 ${SOURCE_FILES} src/main.cpp src/ast.cc src/wam.cc src/wam.h src/inst.cc src/inst.h src/codegen.cc src/codegen.h src/util.h)
