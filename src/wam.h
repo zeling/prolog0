@@ -1,13 +1,14 @@
 #pragma once
 
 #include <memory>
+#include "ast.h"
 
 struct mmap_deleter {
     size_t size;
     void operator()(void *p);
 };
 
-using mmap_area = std::unique_ptr<char, mmap_deleter>;
+using mmap_area = std::unique_ptr<char[], mmap_deleter>;
 
 struct mmap_protected_area {
     mmap_area _protected;
@@ -19,6 +20,12 @@ class wam {
     struct impl {
         mmap_protected_area heap;
         impl(unsigned int heap_pagenum = 1) : heap(heap_pagenum) {}
+
+        using register_type = size_t;
+        using registers = std::vector<register_type>;
+
+        registers regs;
+
     };
 
     std::unique_ptr<impl> _impl;
@@ -32,5 +39,11 @@ public:
 
     char * real_heap_base() {
         return _impl->heap.real;
+    }
+
+
+    void put_structure(const term &t) {
+        assert(t.kind == term::structure);
+
     }
 };

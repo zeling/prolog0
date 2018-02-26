@@ -10,7 +10,7 @@ term make_variable(std::string name) {
 }
 
 std::ostream &operator<<(std::ostream &os, const term &t) {
-    switch (t._kind) {
+    switch (t.kind) {
         case term::variable:
         case term::atom:
             os << t._name;

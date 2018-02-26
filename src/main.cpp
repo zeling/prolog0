@@ -29,7 +29,7 @@ int main() {
     do {
         tok = sc.next();
         switch (tok.type()) {
-            case token::type::ATOM:
+            case token::type::FUNCTOR:
             case token::type::VARIABLE:
                 std::cout << tok.literal() << ' ';
                 break;

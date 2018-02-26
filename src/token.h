@@ -13,7 +13,7 @@
     T(COLONDASH, ":-") \
     T(QMDASH, "?-")    \
                        \
-    T(ATOM, 0)         \
+    T(FUNCTOR, 0)      \
     T(VARIABLE, 0)     \
                        \
     T(EOS, "EOS")      \
@@ -75,7 +75,7 @@ public:
             return false;
         }
 
-        if (_type == type::VARIABLE || _type == type::ATOM) {
+        if (_type == type::VARIABLE || _type == type::FUNCTOR) {
             return *_literal == *rhs._literal;
         }
 

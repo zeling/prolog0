@@ -4,7 +4,7 @@
 term parser::parse_term() {
     token first = _scanner.next();
     switch (first.type()) {
-        case token::ATOM: {
+        case token::FUNCTOR: {
             token next = _scanner.next();
             if (next.type() == token::LPAREN) {
                 std::vector<term> args = parse_list([this] { return parse_term(); }, token(token::COMMA), [] (const token &t) {
@@ -19,7 +19,7 @@ term parser::parse_term() {
         case token::VARIABLE:
             return make_variable(std::move(first.literal()));
         default:
-            throw parser_error("expected ATOM or VARIABLE");
+            throw parser_error("expected FUNCTOR or VARIABLE");
     }
 }
 

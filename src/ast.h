@@ -6,25 +6,31 @@
 #include <initializer_list>
 #include <assert.h>
 
+namespace ast {
+    class term;
+    class program;
+    class query;
+}
+
 
 class term {
     std::string _name;
-    enum kind {
+    std::vector<term> _args;
+
+protected:
+    constexpr static struct variable_t {} variable_marker{};
+    constexpr static struct atom_t {} atom_marker{};
+    term(variable_t, std::string name): _name(std::move(name)), kind(variable) {}
+    term(atom_t, std::string name): _name(std::move(name)), kind(atom) {}
+    term(std::string name, std::vector<term> args):
+            _name(std::move(name)), kind(structure), _args(std::move(args)) {}
+
+public:
+    enum {
         variable,
         atom,
         structure
-    } _kind;
-    std::vector<term> _args;
-
-    constexpr static struct variable_t {} variable_marker{};
-    constexpr static struct atom_t {} atom_marker{};
-
-    term(variable_t, std::string name): _name(std::move(name)), _kind(kind::variable) {}
-    term(atom_t, std::string name): _name(std::move(name)), _kind(kind::atom) {}
-    term(std::string name, std::vector<term> args):
-            _name(std::move(name)), _kind(kind::structure), _args(std::move(args)) {}
-
-public:
+    } kind;
     term(const term &) = delete;
     term(term &&) noexcept = default;
     term &operator=(const term &) = delete;
@@ -61,10 +67,10 @@ class query {
     term _term;
 public:
     query(term term): _term(std::move(term)) {}
-//    query(const query &) = delete;
-//    query(query &&) = default;
-//    query &operator=(const query &) = delete;
-//    query &operator=(query &&) = default;
+    query(const query &) = delete;
+    query(query &&) = default;
+    query &operator=(const query &) = delete;
+    query &operator=(query &&) = default;
 
     const ::term &term() const & noexcept {
         return _term;
@@ -76,6 +82,7 @@ public:
 
     friend std::ostream &operator<<(std::ostream &, const query &);
 };
+
 
 /*
 namespace detail {

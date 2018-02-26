@@ -40,7 +40,7 @@ scanner::token_type scanner::do_scan() {
             } else if (std::islower(ch)) {
                 _input.unget();
                 do_collect_literal();
-                return token_type::ATOM;
+                return token_type::FUNCTOR;
             } else {
                 return token_type::NUM_TOKENS;
             }
@@ -65,7 +65,7 @@ token scanner::next() {
         return std::move(tok);
     }
     token_type type = do_scan();
-    if (type == token_type::ATOM || type == token_type::VARIABLE) {
+    if (type == token_type::FUNCTOR || type == token_type::VARIABLE) {
         return token(type, std::string(_literal_buffer));
     }
     return token(type);
