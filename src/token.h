@@ -31,7 +31,7 @@ public:
     };
 
 private:
-    enum type _type;
+    type _type;
 
     /*
     struct pos {
@@ -56,7 +56,7 @@ public:
     token(type type, unsigned long row, unsigned long col, std::string filename, std::string literal)
         : _type(type), _pos(row, col, std::move(filename)), _literal(std::move(literal)) {}
         */
-    token(): _type(type::NUM_TOKENS) {}
+    token(): _type(NUM_TOKENS) {}
     token(type type): _type(type) {}
     token(type type, std::string literal): _type(type), _literal(std::move(literal)) {}
     token(const token &) = delete;
@@ -75,7 +75,7 @@ public:
             return false;
         }
 
-        if (_type == type::VARIABLE || _type == type::FUNCTOR) {
+        if (_type == VARIABLE || _type == FUNCTOR) {
             return *_literal == *rhs._literal;
         }
 

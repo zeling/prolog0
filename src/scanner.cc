@@ -3,6 +3,7 @@
 //
 
 #include <algorithm>
+#include <iterator>
 #include "scanner.h"
 
 /* return tokens, NUM_TOKENS is returned if not recognized */

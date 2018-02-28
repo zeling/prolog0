@@ -10,6 +10,6 @@ class codegen {
     std::vector<inst> _inst_stream;
 
 public:
-    void compile_query(const query &);
+    // void compile_query(const query &);
 
 };

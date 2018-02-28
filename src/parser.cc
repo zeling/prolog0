@@ -23,10 +23,10 @@ term parser::parse_term() {
     }
 }
 
-template<typename P, typename Pred>
-std::vector<term> parser::parse_list(P p, token delimiter, Pred end) {
+template<typename P, typename Pred, typename Result>
+std::vector<Result> parser::parse_list(P p, token delimiter, Pred end) {
     token t;
-    std::vector<term> ret;
+    std::vector<Result> ret;
     while (true) {
         t = _scanner.next();
         if (end(t) || t.type() == token::EOS) {

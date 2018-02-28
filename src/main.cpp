@@ -6,6 +6,7 @@
 #include "ast.h"
 #include "wam.h"
 #include "parser.h"
+#include "rtti.h"
 
 //variable v("hello");
 
@@ -14,31 +15,31 @@ int main() {
     scanner sc(is);
     token tok;
 
+    ast::term *t = new ast::variable("hello");
+
+    assert(!dyn_cast<ast::constant>(t));
+    if (auto p = dyn_cast<ast::variable>(t)) {
+        std::cout << p->name;
+    }
+
 //    term t = make_structure("f", { make_structure("g", { make_variable("X"), make_atom("u") }), make_variable("Y"), make_atom("v") });
 //    std::cout << t << std::endl;
 
     parser p(sc);
 
-    try {
-        std::cout << p.parse_term() << std::endl;
-        std::cout << p.parse_query() << std::endl;
-    } catch (const parser_error &e) {
-        std::cout << e.what() << std::endl;
-    }
-
     do {
         tok = sc.next();
         switch (tok.type()) {
-            case token::type::FUNCTOR:
-            case token::type::VARIABLE:
+            case token::FUNCTOR:
+            case token::VARIABLE:
                 std::cout << tok.literal() << ' ';
                 break;
             default:
                 std::cout << tok.name() << ' ';
-            case token::type::NUM_TOKENS:
+            case token::NUM_TOKENS:
                 break;
         }
-    } while (tok.type() != token::type::EOS);
+    } while (tok.type() != token::EOS);
 
     wam m;
     std::fill(m.real_heap_base(), m.real_heap_base() + 10, 'A');

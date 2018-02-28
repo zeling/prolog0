@@ -42,8 +42,4 @@ public:
     }
 
 
-    void put_structure(const term &t) {
-        assert(t.kind == term::structure);
-
-    }
 };

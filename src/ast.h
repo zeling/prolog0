@@ -10,130 +10,76 @@
 
 namespace ast {
 
-    class term;
+    class term {
+    public:
+        enum kind {
+            variable,
+            structure,
+            constant
+        };
+    private:
+        const kind _kind;
+    public:
+        term() = default;
+        term(kind k): _kind(k) {}
+        kind kind() const {
+            return _kind;
+        }
+    };
+
+    struct variable : public term {
+        std::string name;
+
+        variable(std::string name) : term(term::variable), name(std::move(name)) {}
+        static bool classof(const term *t) {
+            return t->kind() == term::variable;
+        }
+    };
+
+    struct functor_t {
+        std::string name;
+        size_t arity;
+    };
+
+
+    struct structure : public term {
+        functor_t functor;
+        std::vector<term *> args;
+
+        structure(std::string name, size_t arity, std::vector<term *> args):
+                term(term::structure), args(std::move(args)), functor(functor_t {std::move(name), arity}) {
+        }
+
+        static bool classof(term *t) {
+            return t->kind() == term::structure;
+        }
+    };
+
+    struct constant : public term {
+        std::string name;
+
+        constant(std::string name): term(term::constant) {}
+
+        static bool classof(term *t) {
+            return t->kind() == term::constant;
+        }
+    };
+
+
     class program;
     class rule;
     class query;
 
-    class variable;
-    class structure;
 
-    namespace detail {
-        struct term_impl;
-        struct program_impl;
-        struct rule_impl;
-        struct query_impl;
-    }
-
-    class term : public pimpl<detail::term_impl> {
-    public:
-        term(std::string name);
-        variable as_variable () &&;
-        structure as_structure () &&;
-    };
-
-    class variable : public pimpl<detail::term_impl> {
-    };
-
-    class structure : public pimpl<detail::term_impl> {
-
-    };
-
-
-    namespace detail {
-        struct term_impl {
-            union {
-                variable var;
-                structure str;
-            } u;
-
-            term_impl(variable var) {
-                new(&u.var) term_impl(std::move(var));
-            }
-
-            term_impl(structure str) {
-                new(&u.str) structure(std::move(str));
-            }
-        };
-        struct program_impl {};
-        struct rule_impl{};
-        struct query_impl{};
-    }
 
 
 }
 
 
-class term {
-    std::string _name;
-    std::vector<term> _args;
-
-protected:
-    constexpr static struct variable_t {} variable_marker{};
-    constexpr static struct atom_t {} atom_marker{};
-    term(variable_t, std::string name): _name(std::move(name)), kind(variable) {}
-    term(atom_t, std::string name): _name(std::move(name)), kind(atom) {}
-    term(std::string name, std::vector<term> args):
-            _name(std::move(name)), kind(structure), _args(std::move(args)) {}
-
-public:
-    enum {
-        variable,
-        atom,
-        structure
-    } kind;
-    term(const term &) = delete;
-    term(term &&) noexcept = default;
-    term &operator=(const term &) = delete;
-    term &operator=(term &&) noexcept = default;
-
-    const std::string &name() const & noexcept {
-        return _name;
-    }
-
-    std::string name() && noexcept {
-        return std::move(_name);
-    }
-
-    const std::vector<term> & args() const & noexcept {
-        return _args;
-    }
-
-    std::vector<term> args() && noexcept {
-        return std::move(_args);
-    }
-
-    friend term make_variable(std::string name);
-    friend term make_atom(std::string name);
-    friend term make_structure(std::string name, std::vector<term> args);
-    friend std::ostream &operator<<(std::ostream &, const term &t);
-};
-
-term make_variable(std::string name);
-term make_atom(std::string name);
-term make_structure(std::string name, std::vector<term> args);
-
-
-class query {
-    term _term;
-public:
-    query(term term): _term(std::move(term)) {}
-    query(const query &) = delete;
-    query(query &&) = default;
-    query &operator=(const query &) = delete;
-    query &operator=(query &&) = default;
-
-    const ::term &term() const & noexcept {
-        return _term;
-    }
-
-    ::term term() && noexcept {
-        return std::move(_term);
-    }
-
-    friend std::ostream &operator<<(std::ostream &, const query &);
-};
-
+struct term {};
+term make_atom(std::string);
+term make_variable(std::string);
+term make_structure(std::string, std::vector<term>);
 
 /*
 namespace detail {

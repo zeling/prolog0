@@ -1,5 +1,7 @@
 #pragma once
 
+#include <iostream>
+
 #define INST_LIST(T) \
   T(get_structure)   \
   T(put_structure)   \
