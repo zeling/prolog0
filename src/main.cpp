@@ -16,14 +16,12 @@ int main() {
     token tok;
 
     ast::term *t = new ast::variable("hello");
+    std::unique_ptr<ast::term> holder(t);
 
     assert(!dyn_cast<ast::constant>(t));
     if (auto p = dyn_cast<ast::variable>(t)) {
         std::cout << p->name;
     }
-
-//    term t = make_structure("f", { make_structure("g", { make_variable("X"), make_atom("u") }), make_variable("Y"), make_atom("v") });
-//    std::cout << t << std::endl;
 
     parser p(sc);
 

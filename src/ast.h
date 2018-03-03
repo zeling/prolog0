@@ -8,6 +8,8 @@
 
 #include "util.h"
 
+
+
 namespace ast {
 
     class term {
@@ -36,18 +38,20 @@ namespace ast {
         }
     };
 
-    struct functor_t {
+    struct functor {
         std::string name;
         size_t arity;
+
+        functor(std::string name, size_t arity): name(std::move(name)), arity(arity) {}
     };
 
 
     struct structure : public term {
-        functor_t functor;
-        std::vector<term *> args;
+        struct functor functor;
+        std::vector<std::unique_ptr<term>> args;
 
-        structure(std::string name, size_t arity, std::vector<term *> args):
-                term(term::structure), args(std::move(args)), functor(functor_t {std::move(name), arity}) {
+        structure(std::string name, size_t arity, std::vector<std::unique_ptr<term>> args):
+                term(term::structure), args(std::move(args)), functor(std::move(name), arity) {
         }
 
         static bool classof(term *t) {
@@ -65,152 +69,44 @@ namespace ast {
         }
     };
 
-
-    class program;
-    class rule;
-    class query;
-
-
-
-
-}
-
-
-struct term {};
-term make_atom(std::string);
-term make_variable(std::string);
-term make_structure(std::string, std::vector<term>);
-
-/*
-namespace detail {
-
-    class default_movable {
+    class program {
     public:
-        default_movable() = default;
-        default_movable(default_movable &&) noexcept = default;
-        default_movable &operator=(default_movable &&) noexcept = default;
+        enum kind {
+            fact,
+            rule,
+        };
+    private:
+        const kind _kind;
+    public:
+        program(kind k): _kind(k) {}
+        kind kind() {
+            return _kind;
+        }
     };
 
-    class noncopyable {
+    struct fact : public program {
+        std::unique_ptr<term> _term;
     public:
-        noncopyable() = default;
-        noncopyable(const noncopyable &) = delete;
-        noncopyable &operator=(const noncopyable &) = delete;
+        fact(std::unique_ptr<term> t): program(program::fact), _term(std::move(t)) {}
+        static bool classof(program *p) {
+            return p->kind() == program::fact;
+        }
     };
 
-    class has_name : private default_movable, private noncopyable {
-        std::string _name;
+    struct rule : public program {
+        std::unique_ptr<term> _head;
+        std::vector<std::unique_ptr<term>> _tail;
     public:
-        has_name(std::string name): _name(std::move(name)) {}
-
-        const std::string &name() const & noexcept {
-            return _name;
+        rule(std::unique_ptr<term> head, std::vector<std::unique_ptr<term>> tail): program(program::rule), _head(std::move(head)), _tail(std::move(tail)) {}
+        static bool classof(program *p) {
+            return p->kind() == program::rule;
         }
+    };
 
-        std::string name() && noexcept {
-            return std::move(_name);
-        }
+    struct query {
+        std::vector<std::unique_ptr<term>> terms;
+
+        query(std::vector<std::unique_ptr<term>> terms) : terms(std::move(terms)) {}
     };
 
 }
-
-class term;
-
-class variable : private detail::has_name {
-public:
-    variable(std::string name): has_name(std::move(name)) {}
-};
-
-
-class atom : public detail::has_name {
-public:
-    atom(std::string name): has_name(std::move(name)) {}
-};
-
-class functor : private detail::noncopyable, detail::default_movable {
-    atom _fname;
-    size_t _arity;
-
-public:
-    functor(atom fname, size_t arity): _fname(std::move(fname)), _arity(arity) {}
-    size_t arity() { return _arity; }
-    const std::string &name() const & noexcept {
-        return _fname.name();
-    }
-
-    std::string name() && noexcept {
-        return std::move(_fname).name();
-    }
-};
-
-
-class structure : private detail::noncopyable, private detail::default_movable {
-    functor _functor;
-    std::vector<term> _args;
-public:
-    structure(functor functor, std::initializer_list<term> ilist): _functor(std::move(functor)), _args(ilist) {
-        assert(functor.arity() == ilist.size());
-    }
-
-    structure(functor functor, std::vector<term> args): _functor(std::move(functor)), _args(std::move(args)) {
-        assert(functor.arity() == args.size());
-    }
-
-};
-
-class term {};
-
-
-
-
-
-class term {
-public:
-    struct variable {
-    public:
-        std::string name_;
-        variable(const std::string &name): name_(name) { std::assert(std::islower(name_[0])); }
-        variable(const variable &rhs): name_(rhs.name_) {}
-        variable(variable &&rhs) { std::swap(name_, rhs.name_); }
-
-        template <typename T>
-        void operator=(T &&rhs) {
-            variable tmp(rhs);
-            swap(*this, rhs);
-        }
-        void operator=(const std::string &rhs): name_(rhs.name_) {}
-        void operator=( &&rhs) { std::swap(name_, rhs.name_); }
-    };
-    struct atom {
-        std::string name_;
-        atom(const std::string &name): name_(name) { std::assert(std::isupper(name_[0])); }
-        atom(const atom &rhs): name_(rhs) {}
-        atom(atom &&rhs) { std::swap(name_, rhs.name_); }
-        void operator=(const std::string &rhs): name_(rhs.name_) {}
-        void operator=()
-    };
-    struct functor {
-        atom fname_;
-        int arity_;
-    };
-    struct structure {
-        functor f_;
-        std::list<term> args_;
-    };
-
-private:
-    struct functor;
-    enum TAG {
-        ATM,
-        VAR,
-        STR,
-    } tag;
-
-    union {
-        atom a;
-        variable v;
-        structure s;
-    };
-
-};
- */

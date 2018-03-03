@@ -1,6 +1,7 @@
 #pragma once
 
 #include <exception>
+#include <memory>
 #include "scanner.h"
 #include "ast.h"
 
@@ -20,7 +21,7 @@ public:
     parser(const parser &) = delete;
     parser(parser&&) = default;
 
-    term parse_term();
-    term parse_query();
+    std::unique_ptr<ast::term> parse_term();
+    std::unique_ptr<ast::query> parse_query();
 };
 
