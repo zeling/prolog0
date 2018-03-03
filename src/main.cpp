@@ -22,9 +22,6 @@ int main() {
         std::cout << p->name;
     }
 
-//    term t = make_structure("f", { make_structure("g", { make_variable("X"), make_atom("u") }), make_variable("Y"), make_atom("v") });
-//    std::cout << t << std::endl;
-
     parser p(sc);
 
     do {
