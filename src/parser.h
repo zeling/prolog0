@@ -14,8 +14,8 @@ public:
 class parser {
     scanner &_scanner;
 
-    template<typename P, typename Pred, typename Result=std::result_of_t<P()>>
-    std::vector<Result> parse_list(P p, token delimiter, Pred end);
+    template<typename P, typename Result=std::result_of_t<P()>>
+    std::vector<Result> parse_list(P p, token delimiter, token end);
 public:
     parser(scanner &scanner): _scanner(scanner) {}
     parser(const parser &) = delete;
@@ -23,5 +23,6 @@ public:
 
     std::unique_ptr<ast::term> parse_term();
     std::unique_ptr<ast::query> parse_query();
+    std::unique_ptr<ast::program> parse_program();
 };
 

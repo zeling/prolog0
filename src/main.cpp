@@ -25,6 +25,7 @@ int main() {
 
     parser p(sc);
 
+
     do {
         tok = sc.next();
         switch (tok.type()) {

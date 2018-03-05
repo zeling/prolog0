@@ -9,9 +9,7 @@ std::unique_ptr<ast::term> parser::parse_term() {
         case token::FUNCTOR: {
             token next = _scanner.next();
             if (next.type() == token::LPAREN) {
-                std::vector<std::unique_ptr<ast::term>> args = parse_list([this] { return parse_term(); }, token(token::COMMA), [] (const token &t) {
-                    return t.type() == token::RPAREN;
-                });
+                std::vector<std::unique_ptr<ast::term>> args = parse_list([this] { return parse_term(); }, token(token::COMMA), token(token::RPAREN));
                 return std::make_unique<ast::structure>(first.literal(), args.size(), std::move(args));
             } else {
                 _scanner.push_back(std::move(next));
@@ -25,20 +23,20 @@ std::unique_ptr<ast::term> parser::parse_term() {
     }
 }
 
-template<typename P, typename Pred, typename Result>
-std::vector<Result> parser::parse_list(P p, token delimiter, Pred end) {
+template<typename P, typename Result>
+std::vector<Result> parser::parse_list(P p, token delimiter, token end) {
     token t;
     std::vector<Result> ret;
     while (true) {
         t = _scanner.next();
-        if (end(t) || t.type() == token::EOS) {
+        if (t == end || t.type() == token::EOS) {
             return std::move(ret);
         }
         _scanner.push_back(std::move(t));
         ret.push_back(p());
         t = _scanner.next();
         if (t != delimiter) {
-            if (end(t)) {
+            if (t == end) {
                 return std::move(ret);
             }
             throw parser_error("expected delimiter " + delimiter.name());
@@ -51,9 +49,7 @@ std::unique_ptr<ast::query> parser::parse_query() {
     if (t.type() != token::QMDASH) {
         throw parser_error("expected QMDASH");
     }
-    auto body = parse_list([this] { return parse_term(); }, token(token::COMMA), [](const token &t) {
-        return t.type() == token::PERIOD;
-    });
+    auto body = parse_list([this] { return parse_term(); }, token(token::COMMA), token(token::PERIOD));
     t = _scanner.next();
     if (t.type() != token::PERIOD) {
         throw parser_error("expected PERIOD");
@@ -61,3 +57,14 @@ std::unique_ptr<ast::query> parser::parse_query() {
     return std::make_unique<ast::query>(std::move(body));
 }
 
+std::unique_ptr<ast::program> parser::parse_program() {
+    auto head = parse_term();
+    token t = _scanner.next();
+    if (t.type() == token::COLONDASH) {
+        auto tail = parse_list([this] { return parse_term(); }, token(token::COMMA), token(token::PERIOD));
+        return std::make_unique<ast::rule>(std::move(head), std::move(tail));
+    } else if (t.type() == token::PERIOD) {
+        return std::make_unique<ast::fact>(std::move(head));
+    }
+    throw parser_error("no fact or rule detected");
+}

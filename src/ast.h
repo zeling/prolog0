@@ -36,6 +36,7 @@ namespace ast {
         static bool classof(const term *t) {
             return t->kind() == term::variable;
         }
+
     };
 
     struct functor {
