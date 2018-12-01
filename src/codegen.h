@@ -7,7 +7,7 @@
 
 class codegen {
 
-    std::vector<inst> _inst_stream;
+    std::vector<inst::inst> _inst_stream;
 
 public:
     // void compile_query(const query &);

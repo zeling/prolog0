@@ -7,6 +7,7 @@
 #include "wam.h"
 #include "parser.h"
 #include "rtti.h"
+#include "inst.h"
 
 //variable v("hello");
 
@@ -39,6 +40,12 @@ int main() {
                 break;
         }
     } while (tok.type() != token::EOS);
+
+
+    std::array<inst::inst *, 3> insts = { new inst::put_structure(ast::functor("f", 2), 0), new inst::put_variable(1, 2), new inst::put_value(3, 4)};
+    for (auto & i : insts) {
+       std::cout << *i << std::endl;
+    }
 
     wam m;
     std::fill(m.real_heap_base(), m.real_heap_base() + 10, 'A');
