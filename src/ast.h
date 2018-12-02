@@ -8,7 +8,7 @@
 
 #include "util.h"
 
-namespace ast {
+namespace prolog0 {
 
 class term {
 public:

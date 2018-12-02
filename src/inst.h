@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include <sstream>
 
-namespace inst {
+namespace prolog0 {
 
 #define INST_LIST(T) \
   T(get_structure)   \
@@ -48,7 +48,7 @@ class put_structure : public inst {
     static wam_functor_t from_string(const std::string &name);
 
 public:
-    put_structure(const ast::functor &f, wam_reg_t reg):
+    put_structure(const functor &f, wam_reg_t reg):
         inst(inst::put_structure), _fname(from_string(f.name)), _arity(f.arity), _x(reg) {}
 
     std::string to_string() const override {

@@ -11,15 +11,16 @@
 #include "llvm/Support/Casting.h"
 
 int main() {
+    using namespace prolog0;
     std::istringstream is("person(zeling, male, shanghai) ?-  person(X, Y, shanghai).\nperson(X):-hello. ?- person(Y).");
     scanner sc(is);
     token tok;
 
-    ast::term *t = new ast::variable("hello");
-    std::unique_ptr<ast::term> holder(t);
+    term *t = new variable("hello");
+    std::unique_ptr<term> holder(t);
 
-    assert(!dyn_cast<ast::constant>(t));
-    if (auto p = dyn_cast<ast::variable>(t)) {
+    assert(!dyn_cast<constant>(t));
+    if (auto p = dyn_cast<variable>(t)) {
         std::cout << p->name << std::endl;
     }
 
@@ -41,12 +42,13 @@ int main() {
     } while (tok.type() != token::EOS);
 
 
-    std::array<inst::inst *, 3> insts = { new inst::put_structure(ast::functor("f", 2), 0), new inst::put_variable(1, 2), new inst::put_value(3, 4)};
+
+    std::array<inst *, 3> insts = { new put_structure(functor("f", 2), 0), new put_variable(1, 2), new put_value(3, 4)};
     for (auto i : insts) {
        std::cout << *i << std::endl;
     }
 
-    auto ps = llvm::dyn_cast<inst::put_structure>(insts[0]);
+    auto ps = llvm::dyn_cast<put_structure>(insts[0]);
     std::cout << *ps << std::endl;
 
     wam m;

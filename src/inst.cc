@@ -3,7 +3,7 @@
 
 
 
-namespace inst {
+namespace prolog0 {
 
 const char *inst::get_inst_name() const {
     static const char *inst_names[] = {
