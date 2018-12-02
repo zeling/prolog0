@@ -56,6 +56,10 @@ public:
         ss << get_inst_name() << " " << _functors[_fname] << "/" << _arity << " X_" << _x;
         return ss.str();
     }
+
+    static bool classof(const inst *i) {
+        return i->kind == inst::put_structure;
+    }
 };
 
 

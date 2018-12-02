@@ -8,6 +8,7 @@
 #include "parser.h"
 #include "rtti.h"
 #include "inst.h"
+#include "llvm/Support/Casting.h"
 
 int main() {
     std::istringstream is("person(zeling, male, shanghai) ?-  person(X, Y, shanghai).\nperson(X):-hello. ?- person(Y).");
@@ -44,6 +45,9 @@ int main() {
     for (auto i : insts) {
        std::cout << *i << std::endl;
     }
+
+    auto ps = llvm::dyn_cast<inst::put_structure>(insts[0]);
+    std::cout << *ps << std::endl;
 
     wam m;
     std::fill(m.real_heap_base(), m.real_heap_base() + 10, 'A');

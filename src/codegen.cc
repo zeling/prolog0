@@ -12,4 +12,5 @@ template <typename RegTag>
 inst::wam_reg_t alloc_reg() {
     static inst::wam_reg_t next_reg = 0;
     return next_reg++;
+}
 
