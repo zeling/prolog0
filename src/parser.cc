@@ -52,10 +52,6 @@ std::unique_ptr<query> parser::parse_query() {
         throw parser_error("expected QMDASH");
     }
     auto body = parse_list([this] { return parse_term(); }, token(token::COMMA), token(token::PERIOD));
-    t = _scanner.next();
-    if (t.type() != token::PERIOD) {
-        throw parser_error("expected PERIOD");
-    }
     return std::make_unique<query>(std::move(body));
 }
 

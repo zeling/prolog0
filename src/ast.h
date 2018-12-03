@@ -54,7 +54,7 @@ struct structure : public term {
             term(term::structure), args(std::move(args)), functor(std::move(name), arity) {
     }
 
-    static bool classof(term *t) {
+    static bool classof(const term *t) {
         return t->kind() == term::structure;
     }
 };
@@ -62,9 +62,9 @@ struct structure : public term {
 struct constant : public term {
     std::string name;
 
-    constant(std::string name): term(term::constant) {}
+    constant(std::string name): term(term::constant), name(std::move(name)) {}
 
-    static bool classof(term *t) {
+    static bool classof(const term *t) {
         return t->kind() == term::constant;
     }
 };
@@ -79,7 +79,7 @@ private:
     const kind _kind;
 public:
     program(kind k): _kind(k) {}
-    kind kind() {
+    kind kind() const {
         return _kind;
     }
     virtual ~program() {}
@@ -89,7 +89,7 @@ struct fact : public program {
     std::unique_ptr<term> _term;
 public:
     fact(std::unique_ptr<term> t): program(program::fact), _term(std::move(t)) {}
-    static bool classof(program *p) {
+    static bool classof(const program *p) {
         return p->kind() == program::fact;
     }
 };
@@ -99,7 +99,7 @@ struct rule : public program {
     std::vector<std::unique_ptr<term>> _tail;
 public:
     rule(std::unique_ptr<term> head, std::vector<std::unique_ptr<term>> tail): program(program::rule), _head(std::move(head)), _tail(std::move(tail)) {}
-    static bool classof(program *p) {
+    static bool classof(const program *p) {
         return p->kind() == program::rule;
     }
 };

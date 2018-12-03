@@ -7,5 +7,12 @@ find_package(LLVM REQUIRED CONFIG)
 
 file(GLOB SOURCE_FILES "src/*.cc")
 include_directories(${LLVM_INCLUDE_DIRS})
+
 add_definitions(${LLVM_DEFINITIONS})
-add_executable(prolog0 ${SOURCE_FILES} src/main.cpp src/ast.cc src/wam.cc src/wam.h src/inst.cc src/inst.h src/codegen.cc src/codegen.h src/util.h src/rtti.h)
+add_library(prolog0 STATIC src/ast.cc src/wam.cc src/inst.cc src/codegen.cc src/parser.cc src/scanner.cc src/token.cc)
+
+add_executable(prolog0-repl src/main.cpp)
+target_link_libraries(prolog0-repl prolog0)
+
+add_executable(test_main test/test_parser.cpp test/test_main.cpp)
+target_link_libraries(test_main prolog0)
