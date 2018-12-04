@@ -22,15 +22,18 @@ void alloc_reg(term *trm, reg_map_t &rmap, wam_reg_t &cur, uint32_t level = 0);
 class codegen {
 
     std::vector<std::unique_ptr<inst>> _inst_stream;
+    void put_term(const term *t, reg_map_t &rmap, size_t arg_pos,
+                  std::unordered_set<const term *, term_hash, term_equal> &var_seen);
+    void get_term(const term *t, reg_map_t &rmap, size_t arg_pos,
+                  std::unordered_set<const term *, term_hash, term_equal> &var_seen);
 
 public:
     /* compiles to a heap repr and return the register that holds the heap repr */
     void compile_query(const query *);
 
 
-    void compile_term(const term *, reg_map_t &rmap, size_t arg_pos = 0);
-    void compile_term(const term *, reg_map_t &rmap, size_t arg_pos, std::unordered_set<const term *, term_hash, term_equal> &var_seen);
-
+    void put_term(const term *t, reg_map_t &rmap, size_t arg_pos = 0);
+    void get_term(const term *t, reg_map_t &rmap, size_t arg_pos = 0);
 
     void print_to_stream(std::ostream &s);
 };

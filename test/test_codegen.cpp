@@ -39,7 +39,7 @@ TEST_CASE("alloc_reg", "[codegen]") {
 
         SECTION("compile first argument") {
             codegen cg;
-            cg.compile_term(str->args[0].get(), rmap, 1);
+            cg.put_term(str->args[0].get(), rmap, 1);
         }
 
         SECTION("compile the whole query") {

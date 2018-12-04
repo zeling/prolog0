@@ -15,6 +15,7 @@ namespace prolog0 {
   T(set_value)       \
   T(put_variable)    \
   T(get_variable)    \
+  T(unify_variable)  \
   T(set_variable)    \
   T(call)            \
 
@@ -43,24 +44,18 @@ public:
     virtual ~inst() {}
 };
 
+wam_functor_t from_string(const std::string &name);
+
 class put_structure : public inst {
     wam_functor_t _fname;
     size_t _arity;
     wam_reg_t _x;
 
-    static std::vector<std::string> _functors;
-    static std::unordered_map<std::string, wam_functor_t> _mapping;
-    static wam_functor_t from_string(const std::string &name);
-
 public:
     put_structure(const functor &f, wam_reg_t reg):
         inst(inst::put_structure), _fname(from_string(f.name)), _arity(f.arity), _x(reg) {}
 
-    std::string to_string() const override {
-        std::ostringstream ss;
-        ss << get_inst_name() << " " << _functors[_fname] << "/" << _arity << " X" << _x;
-        return ss.str();
-    }
+    std::string to_string() const override;
 
     static bool classof(const inst *i) {
         return i->kind == inst::put_structure;
@@ -75,11 +70,7 @@ class put_variable : public inst {
 public:
     put_variable(wam_reg_t x, wam_reg_t a): inst(inst::put_variable), _x(x), _a(a) {}
 
-    std::string to_string() const override {
-        std::ostringstream ss;
-        ss << get_inst_name() << " X" << _x << " A" << _a;
-        return ss.str();
-    }
+    std::string to_string() const override;
 
     static bool classof(const inst *i) {
         return i->kind == inst::put_variable;
@@ -92,11 +83,7 @@ class put_value : public inst {
 
 public:
     put_value(wam_reg_t x, wam_reg_t a): inst(inst::put_value), _x(x), _a(a) {}
-    std::string to_string() const override {
-        std::ostringstream ss;
-        ss << get_inst_name() << " X" << _x << " A" << _a;
-        return ss.str();
-    }
+    std::string to_string() const override;
     static bool classof(const inst *i) {
         return i->kind == inst::put_value;
     }
@@ -106,11 +93,7 @@ class set_value : public inst {
     wam_reg_t x;
 public:
     set_value(wam_reg_t x): inst(inst::set_value), x(x) {}
-    std::string to_string() const override {
-        std::ostringstream ss;
-        ss << get_inst_name() << " X" << x;
-        return ss.str();
-    }
+    std::string to_string() const override;
     static bool classof(const inst *i) {
         return i->kind == inst::set_value;
     }
@@ -120,11 +103,7 @@ class set_variable : public inst {
     wam_reg_t x;
 public:
     set_variable(wam_reg_t x): inst(inst::set_variable), x(x) {}
-    std::string to_string() const override {
-        std::ostringstream ss;
-        ss << get_inst_name() << " X" << x;
-        return ss.str();
-    }
+    std::string to_string() const override;
 
     static bool classof(const inst *i) {
         return i->kind == inst::set_variable;
@@ -136,14 +115,67 @@ class call : public inst {
 
 public:
     call(functor f): inst(inst::call), f(std::move(f)) {}
-    std::string to_string() const override {
-        std::ostringstream ss;
-        ss << get_inst_name() << " " << f.name << "/" << f.arity;
-        return ss.str();
-    }
+    std::string to_string() const override;
 
     static bool classof(const inst *i) {
         return i->kind == inst::call;
+    }
+};
+
+class get_structure : public inst {
+    wam_functor_t _fname;
+    size_t _arity;
+    wam_reg_t _x;
+
+public:
+    get_structure(const functor &f, wam_reg_t reg): inst(inst::get_structure), _fname(from_string(f.name)), _arity(f.arity), _x(reg) {}
+
+    std::string to_string() const override;
+
+    static bool classof(const inst *i) {
+        return i->kind == inst::get_structure;
+    }
+
+};
+
+class unify_variable : public inst {
+    wam_reg_t _x;
+
+public:
+    unify_variable(wam_reg_t x): inst(inst::unify_variable), _x(x) {}
+
+    std::string to_string() const override;
+
+    static bool classof(const inst *i) {
+        return i->kind == inst::unify_variable;
+    }
+};
+
+class get_value : public inst {
+    wam_reg_t _x;
+    wam_reg_t _a;
+
+public:
+    get_value(wam_reg_t x, wam_reg_t a): inst(inst::get_value), _x(x), _a(a) {}
+
+    std::string to_string() const override;
+
+    static bool classof(const inst *i) {
+        return i->kind == inst::get_value;
+    }
+
+};
+
+class get_variable : public inst {
+    wam_reg_t _x;
+    wam_reg_t _a;
+public:
+    get_variable(wam_reg_t x, wam_reg_t a): inst(inst::get_variable), _x(x), _a(a) {}
+
+    std::string to_string() const override;
+
+    static bool classof(const inst *i) {
+        return i->kind == inst::get_variable;
     }
 };
 
