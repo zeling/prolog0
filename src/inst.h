@@ -12,8 +12,11 @@ namespace prolog0 {
   T(put_structure)   \
   T(put_value)       \
   T(get_value)       \
+  T(set_value)       \
   T(put_variable)    \
   T(get_variable)    \
+  T(set_variable)    \
+  T(call)            \
 
 using wam_reg_t = uintptr_t;
 using wam_addr_t = uintptr_t;
@@ -75,6 +78,10 @@ public:
         ss << get_inst_name() << " X_" << _x << " A_" << _a;
         return ss.str();
     }
+
+    static bool classof(const inst *i) {
+        return i->kind == inst::put_variable;
+    }
 };
 
 class put_value : public inst {
@@ -87,6 +94,54 @@ public:
         std::ostringstream ss;
         ss << get_inst_name() << " X_" << _x << " A_" << _a;
         return ss.str();
+    }
+    static bool classof(const inst *i) {
+        return i->kind == inst::put_value;
+    }
+};
+
+class set_value : public inst {
+    wam_reg_t x;
+public:
+    set_value(wam_reg_t x): inst(inst::set_value), x(x) {}
+    std::string to_string() const override {
+        std::ostringstream ss;
+        ss << get_inst_name() << " X_" << x;
+        return ss.str();
+    }
+    static bool classof(const inst *i) {
+        return i->kind == inst::set_value;
+    }
+};
+
+class set_variable : public inst {
+    wam_reg_t x;
+public:
+    set_variable(wam_reg_t x): inst(inst::set_variable), x(x) {}
+    std::string to_string() const override {
+        std::ostringstream ss;
+        ss << get_inst_name() << " X_" << x;
+        return ss.str();
+    }
+
+    static bool classof(const inst *i) {
+        return i->kind == inst::set_variable;
+    }
+};
+
+class call : public inst {
+    functor f;
+
+public:
+    call(functor f): inst(inst::call), f(std::move(f)) {}
+    std::string to_string() const override {
+        std::ostringstream ss;
+        ss << get_inst_name() << " " << f.name << "/" << f.arity;
+        return ss.str();
+    }
+
+    static bool classof(const inst *i) {
+        return i->kind == inst::call;
     }
 };
 
