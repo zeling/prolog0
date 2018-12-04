@@ -39,6 +39,8 @@ public:
     virtual std::string to_string() const = 0;
 
     friend std::ostream &operator<<(std::ostream &, const inst &);
+
+    virtual ~inst() {}
 };
 
 class put_structure : public inst {
