@@ -56,7 +56,7 @@ public:
 
     std::string to_string() const override {
         std::ostringstream ss;
-        ss << get_inst_name() << " " << _functors[_fname] << "/" << _arity << " X_" << _x;
+        ss << get_inst_name() << " " << _functors[_fname] << "/" << _arity << " X" << _x;
         return ss.str();
     }
 
@@ -75,7 +75,7 @@ public:
 
     std::string to_string() const override {
         std::ostringstream ss;
-        ss << get_inst_name() << " X_" << _x << " A_" << _a;
+        ss << get_inst_name() << " X" << _x << " A" << _a;
         return ss.str();
     }
 
@@ -92,7 +92,7 @@ public:
     put_value(wam_reg_t x, wam_reg_t a): inst(inst::put_value), _x(x), _a(a) {}
     std::string to_string() const override {
         std::ostringstream ss;
-        ss << get_inst_name() << " X_" << _x << " A_" << _a;
+        ss << get_inst_name() << " X" << _x << " A" << _a;
         return ss.str();
     }
     static bool classof(const inst *i) {
@@ -106,7 +106,7 @@ public:
     set_value(wam_reg_t x): inst(inst::set_value), x(x) {}
     std::string to_string() const override {
         std::ostringstream ss;
-        ss << get_inst_name() << " X_" << x;
+        ss << get_inst_name() << " X" << x;
         return ss.str();
     }
     static bool classof(const inst *i) {
@@ -120,7 +120,7 @@ public:
     set_variable(wam_reg_t x): inst(inst::set_variable), x(x) {}
     std::string to_string() const override {
         std::ostringstream ss;
-        ss << get_inst_name() << " X_" << x;
+        ss << get_inst_name() << " X" << x;
         return ss.str();
     }
 

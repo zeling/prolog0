@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <unordered_set>
 #include "inst.h"
 #include "ast.h"
 #include "llvm/Support/Casting.h"
@@ -25,9 +26,11 @@ class codegen {
 public:
     /* compiles to a heap repr and return the register that holds the heap repr */
     void compile_query(const query *);
-    void compile_term(const term *, reg_map_t &rmap, size_t arg_pos = 0);
 
-    void compile_term(const term *, reg_map_t &rmap, wam_reg_t r, bool top_level);
+
+    void compile_term(const term *, reg_map_t &rmap, size_t arg_pos = 0);
+    void compile_term(const term *, reg_map_t &rmap, size_t arg_pos, std::unordered_set<const term *, term_hash, term_equal> &var_seen);
+
 
     void print_to_stream(std::ostream &s);
 };

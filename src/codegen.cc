@@ -36,7 +36,7 @@ void alloc_reg(term *trm, reg_map_t &rmap, wam_reg_t &cur, uint32_t level) {
         return;
     }
 
-    if (level > 1) rmap[trm] = cur++;
+    if (level > 1 || trm->kind() == term::variable) rmap[trm] = cur++;
     if (auto str = llvm::dyn_cast<structure>(trm)) {
         for (auto &arg : str->args) {
             alloc_reg(arg.get(), rmap, cur, level + 1);
@@ -55,12 +55,13 @@ void codegen::compile_query(const query *qry) {
     /* only one clause for now */
     auto cls = qry->terms[0].get();
     auto reg_map = alloc_reg(cls);
+    std::unordered_set<const term *, term_hash, term_equal> var_seen;
 
     auto rmap = alloc_reg(cls);
     if (auto str = llvm::dyn_cast<structure>(cls)) {
         size_t arg_pos = 1;
         for (auto &arg : str->args) {
-            compile_term(arg.get(), rmap, arg_pos++);
+            compile_term(arg.get(), rmap, arg_pos++, var_seen);
         }
         _inst_stream.emplace_back(new call(str->functor));
     } else if (auto var = llvm::dyn_cast<variable>(cls)) {
@@ -88,12 +89,37 @@ void codegen::compile_term(const term *t, reg_map_t &rmap, size_t arg_pos) {
     }
 }
 
+void codegen::compile_term(const term *t, reg_map_t &rmap, size_t arg_pos, std::unordered_set<const term *, term_hash, term_equal> &var_seen) {
+    if (auto str = llvm::dyn_cast<structure>(t)) {
+        _inst_stream.emplace_back(new put_structure(str->functor, arg_pos ? arg_pos : rmap[str]));
+        for (auto &arg : str->args) {
+            auto *parg = arg.get();
+            compile_term(parg, rmap, 0, var_seen);
+        }
+    } else if (auto cst = llvm::dyn_cast<constant>(t)) {
+        _inst_stream.emplace_back(new put_structure(functor(cst->name, 0), rmap[cst]));
+    } else if (auto var = llvm::dyn_cast<variable>(t)) {
+        if (arg_pos) {
+            _inst_stream.emplace_back(new put_variable(rmap[var], arg_pos));
+        } else {
+            if (var_seen.find(var) == var_seen.end()) {
+                _inst_stream.emplace_back(new set_variable(rmap[var]));
+            } else {
+                _inst_stream.emplace_back(new set_value(rmap[var]));
+            }
+        }
+        var_seen.insert(var);
+    }
+
+}
+
 void codegen::print_to_stream(std::ostream &s) {
     for (auto &i : _inst_stream) {
         s << *i << std::endl;
     }
 
 }
+
 
 //void codegen::compile_term(const tertruem *t, reg_map_t &rmap, wam_reg_t r, bool top_level) {
 //    if (auto str = llvm::dyn_cast<structure>(t)) {
