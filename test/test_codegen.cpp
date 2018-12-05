@@ -39,15 +39,27 @@ TEST_CASE("alloc_reg", "[codegen]") {
 
         SECTION("compile first argument") {
             codegen cg;
-            cg.put_term(str->args[0].get(), rmap, 1);
+//            cg.put_term(str->args[0].get(), rmap, 1);
         }
 
         SECTION("compile the whole query") {
+            std::istringstream iss("?- p(f(X), h(g(Y), X), k).");
+            scanner sc(iss);
+            parser p(sc);
             auto qry = p.parse_query();
             codegen cg;
             cg.compile_query(qry.get());
             cg.print_to_stream(std::cout);
         }
 
+        SECTION("compile the program") {
+            std::istringstream iss("p(f(X), h(Y, f(a)), Y).");
+            scanner sc(iss);
+            parser p(sc);
+            auto prg = p.parse_program();
+            codegen cg;
+            cg.compile_program(prg.get());
+            cg.print_to_stream(std::cout);
+        }
     }
 }

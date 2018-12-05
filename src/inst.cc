@@ -94,4 +94,16 @@ std::string get_variable::to_string() const {
     return ss.str();
 }
 
+std::string unify_value::to_string() const {
+    std::ostringstream ss;
+    ss << get_inst_name() << " X" << _x;
+    return ss.str();
+}
+
+std::string proceed::to_string() const {
+    std::ostringstream ss;
+    ss << get_inst_name();
+    return ss.str();
+}
+
 }

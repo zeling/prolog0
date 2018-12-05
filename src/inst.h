@@ -13,11 +13,13 @@ namespace prolog0 {
   T(put_value)       \
   T(get_value)       \
   T(set_value)       \
+  T(unify_value)     \
   T(put_variable)    \
   T(get_variable)    \
   T(unify_variable)  \
   T(set_variable)    \
   T(call)            \
+  T(proceed)         \
 
 using wam_reg_t = uintptr_t;
 using wam_addr_t = uintptr_t;
@@ -176,6 +178,29 @@ public:
 
     static bool classof(const inst *i) {
         return i->kind == inst::get_variable;
+    }
+};
+
+class unify_value : public inst {
+    wam_reg_t _x;
+public:
+    unify_value(wam_reg_t x): inst(inst::unify_value), _x(x) {}
+
+    std::string to_string() const override;
+
+    static bool classof(const inst *i) {
+        return i->kind == inst::unify_value;
+    }
+};
+
+class proceed : public inst {
+public:
+    proceed(): inst(inst::proceed) {}
+
+    std::string to_string() const override;
+
+    static bool classof(const inst *i) {
+        return i->kind == inst::proceed;
     }
 };
 

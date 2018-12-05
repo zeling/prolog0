@@ -37,12 +37,46 @@ void alloc_reg(term *trm, reg_map_t &rmap, wam_reg_t &cur, uint32_t level) {
         return;
     }
 
-    if (level > 1 || trm->kind() == term::variable) rmap[trm] = cur++;
+    if (level > 1 || trm->kind() != term::structure) rmap[trm] = cur++;
     if (auto str = llvm::dyn_cast<structure>(trm)) {
         for (auto &arg : str->args) {
             alloc_reg(arg.get(), rmap, cur, level + 1);
         }
     }
+}
+
+reg_map_t alloc_reg_program(const term *trm) {
+    reg_map_t rmap;
+    struct state {
+        const term *t;
+        bool top_level;
+    };
+
+    std::queue<state> q;
+    wam_reg_t reg = 1;
+
+    if (auto str = llvm::dyn_cast<structure>(trm)) {
+        for (auto &arg : str->args) {
+            q.push({ arg.get(), true });
+            reg++;
+        }
+    }
+
+    while (!q.empty()) {
+        auto st = q.front(); q.pop();
+
+        if (rmap.find(st.t) == rmap.end() && (!st.top_level || st.t->kind() != term::structure)) {
+            rmap[st.t] = reg++;
+        }
+
+        if (auto str = llvm::dyn_cast<structure>(st.t)) {
+            for (auto &arg : str->args) {
+                q.push({ arg.get(), false });
+            }
+        }
+    }
+
+    return rmap;
 }
 
 reg_map_t alloc_reg(term *trm) {
@@ -122,7 +156,7 @@ void codegen::print_to_stream(std::ostream &s) {
 
 }
 
-void codegen::get_term(const term *t, reg_map_t &rmap, size_t arg_pos) {
+void codegen::get_term(const term *t, reg_map_t &rmap) {
 
     struct state {
         const term *t;
@@ -132,42 +166,63 @@ void codegen::get_term(const term *t, reg_map_t &rmap, size_t arg_pos) {
     std::queue<state> q;
     if (auto str = llvm::dyn_cast<structure>(t)) {
         size_t apos = 1;
-        for (auto & arg : str->args) {
-            q.push({ arg.get(), apos++ });
+        for (auto &arg : str->args) {
+            q.push({arg.get(), apos++});
         }
-    } else {
-        q.push({ t, 0 });
     }
 
     std::unordered_set<const term *, term_hash, term_equal> var_seen;
 
     while (!q.empty()) {
-        auto st = q.front(); q.pop();
+        auto st = q.front();
+        q.pop();
         if (auto str = llvm::dyn_cast<structure>(st.t)) {
             _inst_stream.emplace_back(new get_structure(str->functor, st.arg_pos ? st.arg_pos : rmap[str]));
             for (auto &arg : str->args) {
                 auto parg = arg.get();
                 if (auto var = llvm::dyn_cast<variable>(parg)) {
-                    if (var_seen[var]) {
-//                        _inst_stream.emplace_back(new get_value())
+                    if (var_seen.find(var) != var_seen.end()) {
+                        _inst_stream.emplace_back(new unify_value(rmap[var]));
                     } else {
                         _inst_stream.emplace_back(new unify_variable(rmap[var]));
+                        var_seen.insert(var);
                     }
                 } else {
-
+                    _inst_stream.emplace_back(new unify_variable(rmap[parg]));
+                    q.push({ parg, 0 });
                 }
             }
         } else if (auto cst = llvm::dyn_cast<constant>(st.t)) {
-            _inst_stream.emplace_back(new get_structure(functor(cst->name, 0), st.arg_pos ? st.arg_pos : rmap[str]));
+            _inst_stream.emplace_back(new get_structure(functor(cst->name, 0), st.arg_pos ? st.arg_pos : rmap[cst]));
         } else if (auto var = llvm::dyn_cast<variable>(st.t)) {
-
+            if (st.arg_pos) {
+                if (var_seen.find(var) == var_seen.end()) {
+                    _inst_stream.emplace_back(new get_variable(rmap[var], st.arg_pos));
+                    var_seen.insert(var);
+                } else {
+                    _inst_stream.emplace_back(new get_value(rmap[var], st.arg_pos));
+                }
+            } else {
+                if (var_seen.find(var) == var_seen.end()) {
+                    _inst_stream.emplace_back(new unify_variable(rmap[var]));
+                    var_seen.insert(var);
+                } else {
+                    _inst_stream.emplace_back(new unify_value(rmap[var]));
+                }
+            }
         }
     }
+
+    _inst_stream.emplace_back(new proceed());
 }
 
-void codegen::get_term(const term *t, reg_map_t &rmap, size_t arg_pos,
-                       std::unordered_set<const term *, term_hash, term_equal> &var_seen) {
-
+void codegen::compile_program(const program *p) {
+    if (auto fct = llvm::dyn_cast<fact>(p)) {
+        auto trm = fct->_term.get();
+//        reg_map_t rmap = alloc_reg_program(trm);
+        reg_map_t rmap = alloc_reg(trm);
+        get_term(trm, rmap);
+    }
 }
 
 
@@ -183,9 +238,11 @@ size_t term_hash::operator()(const term *t) const noexcept {
     } else if (auto v = llvm::dyn_cast<variable>(t)) {
         std::hash<std::string> h;
         return h(v->name);
-    } else {
+    } else if (auto c = llvm::dyn_cast<constant>(t)) {
         std::hash<std::string> h;
-        return h(v->name);
+        return h(c->name);
+    } else {
+        assert(0);
     }
 }
 

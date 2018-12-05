@@ -24,16 +24,15 @@ class codegen {
     std::vector<std::unique_ptr<inst>> _inst_stream;
     void put_term(const term *t, reg_map_t &rmap, size_t arg_pos,
                   std::unordered_set<const term *, term_hash, term_equal> &var_seen);
-    void get_term(const term *t, reg_map_t &rmap, size_t arg_pos,
-                  std::unordered_set<const term *, term_hash, term_equal> &var_seen);
+    void get_term(const term *t, reg_map_t &rmap);
 
 public:
     /* compiles to a heap repr and return the register that holds the heap repr */
     void compile_query(const query *);
+    void compile_program(const program *);
 
 
     void put_term(const term *t, reg_map_t &rmap, size_t arg_pos = 0);
-    void get_term(const term *t, reg_map_t &rmap, size_t arg_pos = 0);
 
     void print_to_stream(std::ostream &s);
 };
