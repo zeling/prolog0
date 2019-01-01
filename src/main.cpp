@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string>
 #include <sstream>
 #include "scanner.h"
 #include "token.h"
@@ -8,52 +9,47 @@
 #include "parser.h"
 #include "rtti.h"
 #include "inst.h"
+#include "codegen.h"
 #include "llvm/Support/Casting.h"
+
+#include <readline/readline.h>
+#include <readline/history.h>
+
+static char *line_read = nullptr;
+std::string rl_gets() {
+    if (line_read) {
+        ::free(line_read);
+        line_read = nullptr;
+    }
+    line_read = readline("prolog0> ");
+
+    if (line_read && *line_read)
+        add_history(line_read);
+
+    return { line_read };
+}
 
 int main() {
     using namespace prolog0;
-    std::istringstream is("person(zeling, male, shanghai) ?-  person(X, Y, shanghai).\nperson(X):-hello. ?- person(Y).");
-    scanner sc(is);
-    token tok;
 
-    term *t = new variable("hello");
-    std::unique_ptr<term> holder(t);
-
-    assert(!dyn_cast<constant>(t));
-    if (auto p = dyn_cast<variable>(t)) {
-        std::cout << p->name << std::endl;
-    }
-
-    parser p(sc);
-
-
-    do {
-        tok = sc.next();
-        switch (tok.type()) {
-            case token::FUNCTOR:
-            case token::VARIABLE:
-                std::cout << tok.literal() << ' ';
-                break;
-            default:
-                std::cout << tok.name() << ' ';
-            case token::NUM_TOKENS:
-                break;
+    while (true) {
+        std::istringstream iss(rl_gets());
+        scanner sc(iss);
+        parser p(sc);
+        codegen cg;
+        if (sc.peek() == token::type::QMDASH) {
+            /* its a query */
+            auto qry = p.parse_query();
+            cg.compile_query(qry.get());
+            cg.print_to_stream(std::cout);
+        } else {
+            /* its not a query */
+            auto prg = p.parse_program();
+            cg.compile_program(prg.get());
+            cg.print_to_stream(std::cout);
         }
-    } while (tok.type() != token::EOS);
 
-
-
-    std::array<inst *, 3> insts = { new put_structure(functor("f", 2), 0), new put_variable(1, 2), new put_value(3, 4)};
-    for (auto i : insts) {
-       std::cout << *i << std::endl;
     }
 
-    auto ps = llvm::dyn_cast<put_structure>(insts[0]);
-    std::cout << *ps << std::endl;
-
-    wam m;
-    std::fill(m.real_heap_base(), m.real_heap_base() + 10, 'A');
-    m.real_heap_base()[10] = '\0';
-    std::cout << m.real_heap_base();
     return 0;
 }

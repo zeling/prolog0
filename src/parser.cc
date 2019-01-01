@@ -1,8 +1,6 @@
 #include "parser.h"
 #include "ast.h"
 
-
-
 namespace prolog0 {
 
 std::unique_ptr<term> parser::parse_term() {

@@ -12,7 +12,7 @@ add_definitions(${LLVM_DEFINITIONS})
 add_library(prolog0 STATIC src/ast.cc src/wam.cc src/inst.cc src/codegen.cc src/parser.cc src/scanner.cc src/token.cc src/machine.cc src/machine.h)
 
 add_executable(prolog0-repl src/main.cpp)
-target_link_libraries(prolog0-repl prolog0)
+target_link_libraries(prolog0-repl prolog0 readline)
 
 add_executable(test_main test/test_parser.cpp test/test_main.cpp test/test_codegen.cpp)
 target_link_libraries(test_main prolog0)

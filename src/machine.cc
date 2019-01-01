@@ -10,13 +10,28 @@ namespace {
     uintptr_t pc;
 
     uintptr_t read(uint8_t *ptr) {
-        uintptr_t
     }
 }
 
 namespace prolog0 {
+
+    void interp_get_structure();
+    void interp_put_structure();
+    void interp_put_variable();
+    void interp_put_value();
+    void interp_put_variable();
+    void interp_get_value();
+    void interp_set_value();
+    void interp_unify_value();
+    void interp_unify_variable();
+    void interp_get_variable();
+    void interp_set_variable();
+    void interp_call();
+    void interp_proceed();
+
     void interp() {
-        static void *lut[inst::NUM_INST] = {
+        using interp_t = void (*)();
+        static interp_t lut[inst::NUM_INST] = {
 #define T(name) interp_##name,
                 INST_LIST(T)
 #undef T
@@ -24,10 +39,5 @@ namespace prolog0 {
 
     }
 
-    void interp_put_structure() {
-        wam_functor_t
-    }
 
-
-    void unify()
 }

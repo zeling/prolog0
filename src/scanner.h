@@ -17,6 +17,7 @@ class scanner {
 public:
     explicit scanner(std::istream &input): _input(input) {}
     token next();
+    token_type peek();
     void push_back(token);
 };
 

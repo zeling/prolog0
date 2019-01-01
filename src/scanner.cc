@@ -75,3 +75,10 @@ token scanner::next() {
 void scanner::push_back(token t) {
     _look_ahead.emplace(std::move(t));
 }
+
+scanner::token_type scanner::peek() {
+    auto tok = next();
+    auto type = tok.type();
+    push_back(std::move(tok));
+    return type;
+}
