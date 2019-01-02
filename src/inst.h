@@ -21,7 +21,7 @@ namespace prolog0 {
   T(call)            \
   T(proceed)         \
 
-using wam_reg_t = uintptr_t;
+using wam_reg_t = uint32_t;
 using wam_addr_t = uintptr_t;
 using wam_functor_t = size_t;
 
