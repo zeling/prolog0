@@ -4,12 +4,20 @@ project(prolog0)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 
 find_package(LLVM REQUIRED CONFIG)
-
-file(GLOB SOURCE_FILES "src/*.cc")
+add_definitions(${LLVM_DEFINITIONS})
 include_directories(${LLVM_INCLUDE_DIRS})
 
-add_definitions(${LLVM_DEFINITIONS})
-add_library(prolog0 STATIC src/ast.cc src/wam.cc src/inst.cc src/codegen.cc src/parser.cc src/scanner.cc src/token.cc src/machine.cc src/machine.h)
+add_library(prolog0 STATIC
+        src/ast.cc
+        src/wam.cc
+        src/inst.cc
+        src/codegen.cc
+        src/parser.cc
+        src/scanner.cc
+        src/token.cc
+        src/machine.cc
+        src/machine.h
+        src/wam.cpp)
 
 add_executable(prolog0-repl src/main.cpp)
 target_link_libraries(prolog0-repl prolog0 readline)

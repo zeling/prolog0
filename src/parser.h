@@ -20,6 +20,7 @@ class parser {
     template<typename P, typename Result=std::result_of_t<P()>>
     std::vector<Result> parse_list(P p, token delimiter, token end);
 
+    std::unique_ptr<structure> parse_structure();
 public:
     parser(scanner &scanner) : _scanner(scanner) {}
 

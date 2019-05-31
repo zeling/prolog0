@@ -4,7 +4,7 @@
 #include <unordered_set>
 #include "inst.h"
 #include "ast.h"
-#include "llvm/Support/Casting.h"
+//#include "llvm/Support/Casting.h"
 
 namespace prolog0 {
 
@@ -16,7 +16,7 @@ struct term_equal {
     bool operator()(const term *lhs, const term *rhs) const noexcept;
 };
 
-using reg_map_t = std::unordered_map<const term *, wam_reg_t, term_hash, term_equal>;
+using reg_map_t = std::unordered_map<const term *, reg_t, term_hash, term_equal>;
 void alloc_reg(term *trm, reg_map_t &rmap, wam_reg_t &cur, uint32_t level = 0);
 
 class codegen {

@@ -1,29 +1,90 @@
 #pragma once
-
+#include <ostream>
 #include "ast.h"
-#include <iostream>
-#include <unordered_map>
-#include <sstream>
+
+
+#define DEFINE_INST_BEGIN(name) struct name : inst {
+#define DEFINE_INST_END(name)          \
+  static bool classof(const inst *i) { \
+    return i->kind == inst::name;      \
+  }                                    \
+}                                      \
+
+#define DEFINE_INST_FIELD1(t1, n1) t1 n1;
+#define DEFINE_INST_FIELD2(t1, n1, t2, n2) t1 n1; t2 n2;
+
+
+#define DEFINE_INST_CTOR0(name) \
+  name(): inst(inst::name) {}
+#define DEFINE_INST_CTOR1(name, t1, n1) \
+  name(const t1 &_##n1): inst(inst::name), n1(_##n1) {}
+#define DEFINE_INST_CTOR2(name, t1, n1, t2, n2) \
+  name(const t1 &_##n1, const t2 &_##n2): inst(inst::name), n1(_##n1), n2(_##n2) {}
+
+#define DEFINE_INST_SER_BEGIN void print_stream(std::ostream &_o) const override { \
+   _o << get_inst_name();
+#define DEFINE_INST_SER_FIELD1(n1) _o << " " << this->n1
+#define DEFINE_INST_SER_FIELD2(n1, n2) DEFINE_INST_SER_FIELD1(n1) << ", " << this->n2
+#define DEFINE_INST_SER_END }
+
+#define DEFINE_INST_SER0() \
+  DEFINE_INST_SER_BEGIN \
+  DEFINE_INST_SER_END \
+
+#define DEFINE_INST_SER1(n1) \
+  DEFINE_INST_SER_BEGIN \
+  DEFINE_INST_SER_FIELD1(n1); \
+  DEFINE_INST_SER_END \
+
+#define DEFINE_INST_SER2(n1, n2) \
+  DEFINE_INST_SER_BEGIN \
+  DEFINE_INST_SER_FIELD2(n1, n2); \
+  DEFINE_INST_SER_END \
+
+#define DEFINE_INST0(name) \
+  DEFINE_INST_BEGIN(name) \
+  DEFINE_INST_CTOR0(name) \
+  DEFINE_INST_SER0() \
+  DEFINE_INST_END(name) \
+
+#define DEFINE_INST1(name, t1, n1) \
+  DEFINE_INST_BEGIN(name) \
+  DEFINE_INST_FIELD1(t1, n1) \
+  DEFINE_INST_CTOR1(name, t1, n1) \
+  DEFINE_INST_SER1(n1) \
+  DEFINE_INST_END(name) \
+
+#define DEFINE_INST2(name, t1, n1, t2, n2) \
+  DEFINE_INST_BEGIN(name) \
+  DEFINE_INST_FIELD2(t1, n1, t2, n2) \
+  DEFINE_INST_CTOR2(name, t1, n1, t2, n2) \
+  DEFINE_INST_SER2(n1, n2) \
+  DEFINE_INST_END(name) \
+
+#define GET_DEFINE_INST__(_name, _1, _2, _3, _4, _5, real, ...) real
+#define GET_DEFINE_INST(tuple) GET_DEFINE_INST__ tuple
+
+#define DEFINE_INST(...) GET_DEFINE_INST((__VA_ARGS__, DEFINE_INST2, DEFINE_INST2, DEFINE_INST1, DEFINE_INST1, DEFINE_INST0, DEFINE_INST0))(__VA_ARGS__)
 
 namespace prolog0 {
 
 #define INST_LIST(T) \
-  T(get_structure)   \
-  T(put_structure)   \
-  T(put_value)       \
-  T(get_value)       \
-  T(set_value)       \
-  T(unify_value)     \
-  T(put_variable)    \
-  T(get_variable)    \
-  T(unify_variable)  \
-  T(set_variable)    \
-  T(call)            \
-  T(proceed)         \
+  T(get_structure, functor_t, f, reg_t, x)   \
+  T(put_structure, functor_t, f, reg_t, x)   \
+  T(put_value, reg_t, x, reg_t, a)           \
+  T(get_value, reg_t, x, reg_t, a)           \
+  T(set_value, reg_t, x)                     \
+  T(unify_value, reg_t, x)                   \
+  T(put_variable, reg_t, x, reg_t, a)        \
+  T(get_variable, reg_t, x, reg_t, a)        \
+  T(unify_variable, reg_t, x)                \
+  T(set_variable, reg_t, x)                  \
+  T(call, functor_t, p)                      \
+  T(proceed)                                 \
 
-using wam_reg_t = uint32_t;
-using wam_addr_t = uintptr_t;
-using wam_functor_t = size_t;
+using reg_t = uint32_t;
+using addr_t = uintptr_t;
+using functor_t = functor;
 
 class inst {
 
@@ -31,7 +92,7 @@ protected:
     const char *get_inst_name() const;
 public:
     enum kind {
-#define T(e) e,
+#define T(e, ...) e,
         INST_LIST(T)
 #undef T
         NUM_INST
@@ -39,170 +100,15 @@ public:
 
     inst(enum kind kind): kind(kind) {}
 
-    virtual std::string to_string() const = 0;
-
     friend std::ostream &operator<<(std::ostream &, const inst &);
+    virtual void print_stream(std::ostream &o) const = 0;
 
     virtual ~inst() {}
 };
 
-wam_functor_t from_string(const std::string &name);
-
-class put_structure : public inst {
-    wam_functor_t _fname;
-    size_t _arity;
-    wam_reg_t _x;
-
-public:
-    put_structure(const functor &f, wam_reg_t reg):
-        inst(inst::put_structure), _fname(from_string(f.name)), _arity(f.arity), _x(reg) {}
-
-    std::string to_string() const override;
-
-    static bool classof(const inst *i) {
-        return i->kind == inst::put_structure;
-    }
-};
-
-
-class put_variable : public inst {
-    wam_reg_t _x;
-    wam_reg_t _a;
-
-public:
-    put_variable(wam_reg_t x, wam_reg_t a): inst(inst::put_variable), _x(x), _a(a) {}
-
-    std::string to_string() const override;
-
-    static bool classof(const inst *i) {
-        return i->kind == inst::put_variable;
-    }
-};
-
-class put_value : public inst {
-    wam_reg_t _x;
-    wam_reg_t _a;
-
-public:
-    put_value(wam_reg_t x, wam_reg_t a): inst(inst::put_value), _x(x), _a(a) {}
-    std::string to_string() const override;
-    static bool classof(const inst *i) {
-        return i->kind == inst::put_value;
-    }
-};
-
-class set_value : public inst {
-    wam_reg_t x;
-public:
-    set_value(wam_reg_t x): inst(inst::set_value), x(x) {}
-    std::string to_string() const override;
-    static bool classof(const inst *i) {
-        return i->kind == inst::set_value;
-    }
-};
-
-class set_variable : public inst {
-    wam_reg_t x;
-public:
-    set_variable(wam_reg_t x): inst(inst::set_variable), x(x) {}
-    std::string to_string() const override;
-
-    static bool classof(const inst *i) {
-        return i->kind == inst::set_variable;
-    }
-};
-
-class call : public inst {
-    functor f;
-
-public:
-    call(functor f): inst(inst::call), f(std::move(f)) {}
-    std::string to_string() const override;
-
-    static bool classof(const inst *i) {
-        return i->kind == inst::call;
-    }
-};
-
-class get_structure : public inst {
-    wam_functor_t _fname;
-    size_t _arity;
-    wam_reg_t _x;
-
-public:
-    get_structure(const functor &f, wam_reg_t reg): inst(inst::get_structure), _fname(from_string(f.name)), _arity(f.arity), _x(reg) {}
-
-    std::string to_string() const override;
-
-    static bool classof(const inst *i) {
-        return i->kind == inst::get_structure;
-    }
-
-};
-
-class unify_variable : public inst {
-    wam_reg_t _x;
-
-public:
-    unify_variable(wam_reg_t x): inst(inst::unify_variable), _x(x) {}
-
-    std::string to_string() const override;
-
-    static bool classof(const inst *i) {
-        return i->kind == inst::unify_variable;
-    }
-};
-
-class get_value : public inst {
-    wam_reg_t _x;
-    wam_reg_t _a;
-
-public:
-    get_value(wam_reg_t x, wam_reg_t a): inst(inst::get_value), _x(x), _a(a) {}
-
-    std::string to_string() const override;
-
-    static bool classof(const inst *i) {
-        return i->kind == inst::get_value;
-    }
-
-};
-
-class get_variable : public inst {
-    wam_reg_t _x;
-    wam_reg_t _a;
-public:
-    get_variable(wam_reg_t x, wam_reg_t a): inst(inst::get_variable), _x(x), _a(a) {}
-
-    std::string to_string() const override;
-
-    static bool classof(const inst *i) {
-        return i->kind == inst::get_variable;
-    }
-};
-
-class unify_value : public inst {
-    wam_reg_t _x;
-public:
-    unify_value(wam_reg_t x): inst(inst::unify_value), _x(x) {}
-
-    std::string to_string() const override;
-
-    static bool classof(const inst *i) {
-        return i->kind == inst::unify_value;
-    }
-};
-
-class proceed : public inst {
-public:
-    proceed(): inst(inst::proceed) {}
-
-    std::string to_string() const override;
-
-    static bool classof(const inst *i) {
-        return i->kind == inst::proceed;
-    }
-};
+#define T(...) DEFINE_INST(__VA_ARGS__);
+  INST_LIST(T)
+#undef T
 
 
 }
