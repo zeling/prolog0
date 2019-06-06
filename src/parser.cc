@@ -12,6 +12,8 @@ std::unique_ptr<structure> parser::parse_structure() {
     token next = _scanner.next();
     if (next.type() == token::LPAREN) {
         args = parse_list([this] { return parse_term(); }, token(token::COMMA), token(token::RPAREN));
+    } else {
+        _scanner.push_back(std::move(next));
     }
     return std::make_unique<structure>(first.literal(), args.size(), std::move(args));
 }

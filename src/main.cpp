@@ -7,13 +7,19 @@
 #include "ast.h"
 #include "wam.h"
 #include "parser.h"
-#include "rtti.h"
 #include "inst.h"
 //#include "codegen.h"
 #include "llvm/Support/Casting.h"
 
 #include <readline/readline.h>
 #include <readline/history.h>
+#include <vector>
+
+namespace prolog0 {
+    using inst_stream = std::vector<inst *>;
+    void compile_query(inst_stream &o, const structure *s);
+    void compile_fact(inst_stream &o, const structure *s);
+}
 
 static char *line_read = nullptr;
 void rl_gets() {
@@ -53,14 +59,25 @@ int main() {
             parser p(sc);
 //            codegen cg;
             try {
+                inst_stream s;
                 if (sc.peek() == token::type::QMDASH) {
                     /* its a query */
                     auto qry = p.parse_query();
+                    compile_query(s, qry->terms[0].get());
+                    for (auto i: s) {
+                        std::cout << *i << std::endl;
+                    }
 //                cg.compile_query(qry.get());
 //                cg.print_to_stream(std::cout);
                 } else {
                     /* its not a query */
                     auto prg = p.parse_program();
+                    if (auto f = llvm::dyn_cast<fact>(prg.get())) {
+                        compile_fact(s, f->_str.get());
+                        for (auto i: s) {
+                            std::cout << *i << std::endl;
+                        }
+                    }
 //                    dumb_visitor v;
 //                    v.visit(*llvm::dyn_cast<fact>(prg.get()));
 //                cg.compile_program(prg.get());

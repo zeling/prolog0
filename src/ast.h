@@ -2,6 +2,7 @@
 
 #include <ostream>
 #include <vector>
+#include <queue>
 #include <string>
 #include <memory>
 #include <initializer_list>
@@ -142,7 +143,7 @@ namespace prolog0 {
 
     template<typename Visitor>
     struct ast_visitor {
-#define DELEGATE_VISIT(what) void visit(what *x) { static_cast<Visitor *>(this)->visit_##what(x); }
+#define DELEGATE_VISIT(what) void visit(const what *x) { static_cast<Visitor *>(this)->visit_##what(x); }
 
         DELEGATE_VISIT(term);
         DELEGATE_VISIT(variable);
@@ -152,10 +153,10 @@ namespace prolog0 {
         DELEGATE_VISIT(rule);
         DELEGATE_VISIT(fact);
 
-#define EMPTY_VISIT(what) void visit_##what(what *x) {}
+#define EMPTY_VISIT(what) void visit_##what(const what *x) {}
 
         // default implementations:
-        void visit_term(term *t) {
+        void visit_term(const term *t) {
             switch (t->kind()) {
                 case term::variable:
                     return visit(llvm::dyn_cast<variable>(t));
@@ -167,22 +168,41 @@ namespace prolog0 {
         EMPTY_VISIT(variable);
         EMPTY_VISIT(structure);
 
-        void walk_structure_preorder(structure *s) {
-            visit(s);
-            for (auto &sub: s->args) {
-                visit(sub.get());
+        void walk_preorder(const term *t) {
+            visit(t);
+            if (auto s = llvm::dyn_cast<structure>(t)) {
+                for (auto &sub: s->args) {
+                    walk_preorder(sub.get());
+                }
             }
         }
 
-        void walk_structure_postorder(structure *s) {
-            visit(s);
-            for (auto &sub: s->args) {
-                visit(sub.get());
+        void walk_postorder(const term *t) {
+            if (auto s = llvm::dyn_cast<structure>(t)) {
+                for (auto &sub: s->args) {
+                    walk_postorder(sub.get());
+                }
+            }
+            visit(t);
+        }
+
+        void walk_breadth_first(const term *t) {
+            std::queue<const term *> q;
+            q.push(t);
+            while (!q.empty()) {
+                auto h = q.front();
+                q.pop();
+                visit(h);
+                if (auto s = llvm::dyn_cast<structure>(h)) {
+                    for (auto &sub: s->args) {
+                        q.push(sub.get());
+                    }
+                }
             }
         }
 
         EMPTY_VISIT(query);
-        void visit_program(program *p) {
+        void visit_program(const program *p) {
             switch (p->kind()) {
                 case program::fact:
                     return visit(llvm::dyn_cast<fact>(p));
