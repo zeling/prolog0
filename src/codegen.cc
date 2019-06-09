@@ -86,7 +86,7 @@
 //    return ret;
 //}
 //
-//void codegen::compile_query(const query *qry) {
+//void codegen::compile_query_term(const query *qry) {
 //    /* only one clause for now */
 //    auto cls = qry->terms[0].get();
 //    auto reg_map = alloc_reg(cls);

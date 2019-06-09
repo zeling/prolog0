@@ -122,13 +122,13 @@ namespace prolog0 {
     };
 
     struct rule : public program {
-        std::unique_ptr<structure> _head;
-        std::vector<std::unique_ptr<structure>> _tail;
+        std::unique_ptr<structure> head;
+        std::vector<std::unique_ptr<structure>> tail;
     public:
         rule(std::unique_ptr<structure> head, std::vector<std::unique_ptr<structure>> tail)
             : program(program::rule),
-              _head(std::move(head)),
-              _tail(std::move(tail)) {}
+              head(std::move(head)),
+              tail(std::move(tail)) {}
 
         static bool classof(const program *p) {
             return p->kind() == program::rule;
