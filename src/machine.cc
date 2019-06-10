@@ -6,49 +6,53 @@
 #include "inst.h"
 #include "endian.h"
 
-#define REF 1
-#define STR 0
+namespace {
+#define MAX_REGS 256
+    using wam_addr_t = uintptr_t;
 
-#define GET_TAG(t) ((t) & 1)
+    enum tag {
+        REF,
+        STR = 1,
+    };
 
-//namespace {
-//    prolog0::wam_addr_t pc;
-//    prolog0::wam_addr_t h;
-//    prolog0::wam_addr_t s;
-//
-//    std::vector<prolog0::wam_reg_t> regs;
-//
-//    std::unordered_map<std::string,
-//
-//    template <typename Integral, size_t S = sizeof(Integral)>
-//    struct read_integral {
-//        Integral do_read(uint8_t *pc);
-//    };
-//
-//    template <typename Integral>
-//    struct read_integral<Integral, 16> {
-//        Integral do_read(uint8_t *pc) {
-//            return be16toh(*reinterpret_cast<uint16_t *>(pc));
-//        }
-//    };
-//    template <typename Integral>
-//    struct read_integral<Integral, 32> {
-//        Integral do_read(uint8_t *pc) {
-//            return be32toh(*reinterpret_cast<uint32_t *>(pc));
-//        }
-//    };
-//    template <typename Integral>
-//    struct read_integral<Integral, 64> {
-//        Integral do_read(uint8_t *pc) {
-//            return be64toh(*reinterpret_cast<uint64_t *>(pc));
-//        }
-//    };
-//
+    // definition of registers for wam.
+    wam_addr_t H;
+    wam_addr_t S;
+
+    wam_addr_t regs[MAX_REGS];
+
+    constexpr bool is_ref(wam_addr_t addr) {
+        return (addr & STR) == 0;
+    }
+
+    constexpr bool is_str(wam_addr_t addr) {
+        return (addr & STR) == STR;
+    }
+
+    template <typename Integral, size_t S = sizeof(Integral)>
+    struct read_integral {
+        Integral do_read(uint8_t *pc) {
+            static_assert(sizeof(Integral) == 1);
+            return *pc;
+        }
+    };
+
+#define DECLARE_READ_INTEGRAL(size)                                       \
+    template <typename Integral>                                          \
+    struct read_integral<Integral, size> {                                \
+        Integral do_read(uint##size##_t *x) {                             \
+            return be##size##toh(*reinterpret_cast<uint##size##_t *>(x)); \
+        }                                                                 \
+    }
+
+    DECLARE_READ_INTEGRAL(16);
+    DECLARE_READ_INTEGRAL(32);
+    DECLARE_READ_INTEGRAL(64);
+}
 #define T(name, ...) void interp_##name() {}
     INST_LIST(T)
 #undef T
-//}
-//
+
 namespace prolog0 {
 
     void interp() {

@@ -84,7 +84,7 @@ namespace prolog0 {
   T(allocate, size_t, env_size)              \
   T(deallocate)
 
-using reg_t = uint32_t;
+using reg_t = int32_t;
 using addr_t = uintptr_t;
 using functor_t = functor;
 

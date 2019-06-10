@@ -8,7 +8,6 @@
 #include "wam.h"
 #include "parser.h"
 #include "inst.h"
-//#include "codegen.h"
 #include "llvm/Support/Casting.h"
 
 #include <readline/readline.h>
@@ -26,21 +25,6 @@ void rl_gets() {
     if (line_read && *line_read)
         add_history(line_read);
 }
-
-struct dumb_visitor: prolog0::ast_visitor<dumb_visitor> {
-    void visit_fact(prolog0::fact &f) {
-        std::cout << "fact" << std::endl;
-//        f._term
-    }
-
-    void visit_pre_structure(prolog0::structure &s) {
-        std::cout << s.functor << std::endl;
-    }
-
-    void visit_post_structure(prolog0::structure &s) {
-        std::cout << "end" << std::endl;
-    }
-};
 
 int main() {
     using namespace prolog0;

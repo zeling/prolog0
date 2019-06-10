@@ -78,22 +78,25 @@ namespace prolog0 {
         }
     };
 
-//    struct constant : public term {
-//        std::string name;
-//
-//        constant(std::string name) : term(term::constant), name(std::move(name)) {}
-//
-//        static bool classof(const term *t) {
-//            return t->kind() == term::constant;
-//        }
-//
-//        template<typename Visitor>
-//        void accept(term_visitor<Visitor> &v) {
-//            v.visit(this);
-//        }
-//    };
+    class ast {
+    public:
+        enum kind {
+            query,
+            program,
+        };
+    private:
+        const kind _kind;
+    public:
+        ast(kind k): _kind(k) {}
 
-    class program {
+        kind kind() const {
+            return _kind;
+        }
+
+        virtual ~ast() {}
+    };
+
+    class program : ast {
     public:
         enum kind {
             fact,
@@ -102,13 +105,17 @@ namespace prolog0 {
     private:
         const kind _kind;
     public:
-        program(kind k) : _kind(k) {}
+        program(kind k) : ast(ast::program), _kind(k) {}
 
         kind kind() const {
             return _kind;
         }
 
         virtual ~program() {}
+
+        static bool classof(const ast *a) {
+            return a->kind() == ast::program;
+        }
     };
 
     struct fact : public program {
@@ -135,10 +142,13 @@ namespace prolog0 {
         }
     };
 
-    struct query {
+    struct query: ast {
         std::vector<std::unique_ptr<structure>> terms;
+        query(std::vector<std::unique_ptr<structure>> terms): ast(ast::query), terms(std::move(terms)) {}
 
-        query(std::vector<std::unique_ptr<structure>> terms) : terms(std::move(terms)) {}
+        static bool classof(const ast *a) {
+            return a->kind() == ast::query;
+        }
     };
 
     template<typename Visitor>
@@ -152,6 +162,7 @@ namespace prolog0 {
         DELEGATE_VISIT(program);
         DELEGATE_VISIT(rule);
         DELEGATE_VISIT(fact);
+        DELEGATE_VISIT(ast);
 
 #define EMPTY_VISIT(what) void visit_##what(const what *x) {}
 
@@ -159,9 +170,9 @@ namespace prolog0 {
         void visit_term(const term *t) {
             switch (t->kind()) {
                 case term::variable:
-                    return visit(llvm::dyn_cast<variable>(t));
+                    return visit(llvm::cast<variable>(t));
                 case term::structure:
-                    return visit(llvm::dyn_cast<structure>(t));
+                    return visit(llvm::cast<structure>(t));
             }
         }
 
@@ -205,13 +216,22 @@ namespace prolog0 {
         void visit_program(const program *p) {
             switch (p->kind()) {
                 case program::fact:
-                    return visit(llvm::dyn_cast<fact>(p));
+                    return visit(llvm::cast<fact>(p));
                 case program::rule:
-                    return visit(llvm::dyn_cast<rule>(p));
+                    return visit(llvm::cast<rule>(p));
             }
         }
         EMPTY_VISIT(rule);
         EMPTY_VISIT(fact);
+
+        void visit_ast(const ast *a) {
+            switch (a->kind()) {
+                case ast::program:
+                    return visit(llvm::cast<program>(a));
+                case ast::query:
+                    return visit(llvm::cast<query>(a));
+            }
+        }
     };
 
 }
