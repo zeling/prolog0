@@ -23,7 +23,7 @@ namespace prolog0 {
     template <typename Compile>
     struct compile_visitor: ast_visitor<compile_visitor<Compile>> {
         varset _varseen;
-        std::unordered_map<const term *, reg_t> _args;
+        termmap<reg_t> _args;
         inst_stream &_o;
         const structure *_top;
         compile_visitor(inst_stream &o, const structure *top, varset varseen): _top(top), _o(o), _varseen(std::move(varseen)) {
@@ -52,15 +52,14 @@ namespace prolog0 {
         }
     };
 
-    termmap<reg_t> flatten(const structure *s, varset env, varmap<reg_t> &vars) {
+    termmap<reg_t> flatten(const structure *s, varmap<reg_t> *env) {
         reg_t start = s->args.size();
         struct visitor: ast_visitor<visitor> {
-            reg_t _x_reg, _y_reg = -1;
-            varset _env;
-            varmap<reg_t> &_vars;
+            reg_t _x_reg;
+            varmap<reg_t> *_env;
             termmap<reg_t> _flattened;
 
-            visitor(reg_t start, const structure *s, varset env, varmap<reg_t> &vars): _x_reg(start), _env(std::move(env)), _vars(vars) {
+            visitor(reg_t start, const structure *s, varmap<reg_t> *env): _x_reg(start), _env(env) {
                 reg_t arg = 1;
                 for (auto &t: s->args) {
                     if (auto s = llvm::dyn_cast<structure>(t.get())) {
@@ -68,24 +67,14 @@ namespace prolog0 {
                     }
                     arg++;
                 }
-                for (auto &p: vars) {
-                    if (p.second > 0) _x_reg++;
-                    else _y_reg--;
-                }
             }
 
             void visit_variable(const variable *v) {
-                if (_vars.find(v->name) == _vars.end()) {
-                    reg_t assignee;
-                    if (_env.find(v->name) == _env.end()) {
-                        assignee = _x_reg++;
-                    } else {
-                        assignee = _y_reg--;
-                    }
-                    _flattened[v] = assignee;
-                    _vars[v->name] = assignee;
+                auto it = _env->find(v->name);
+                if (it != _env->end()) {
+                    _flattened[v] = it->second;
                 } else {
-                    _flattened[v] = _vars[v->name];
+                    _flattened[v] = _x_reg++;
                 }
             }
 
@@ -94,16 +83,16 @@ namespace prolog0 {
                     _flattened[s] = _x_reg++;
                 }
             }
-        } v {start, s, std::move(env), vars};
+        } v {start, s, env};
         v.walk_preorder(s);
         return v._flattened;
     }
 
-    varset compile_query_term(inst_stream &_o, const structure *s, varset seen, varset env, varmap<reg_t> &vars) {
-        auto flattened = flatten(s, std::move(env), vars);
+    varset compile_query_term(inst_stream &_o, const structure *s, varset seen, varmap<reg_t> *env) {
+        auto flattened = flatten(s, env);
         struct compile: compile_visitor<compile> {
             std::unordered_map<const term *, reg_t> _flattened;
-            compile(std::unordered_map<const term *, reg_t> f, inst_stream &o, const structure *s, varset seen): compile_visitor(o, s, std::move(seen)), _flattened(std::move(f)) {}
+            compile(termmap<reg_t> f, inst_stream &o, const structure *s, varset seen): compile_visitor(o, s, std::move(seen)), _flattened(std::move(f)) {}
             void emit_structure(const structure *s) {
                 EMIT_INST(put_structure, s->functor, _flattened[s]);
             }
@@ -128,8 +117,8 @@ namespace prolog0 {
         return c._varseen;
     }
 
-    varset compile_program_term(inst_stream &o, const structure *s, varset seen, varset env, varmap<reg_t> &vars) {
-        auto flattened = flatten(s, std::move(env), vars);
+    varset compile_program_term(inst_stream &o, const structure *s, varset seen, varmap<reg_t> *env) {
+        auto flattened = flatten(s, env);
         struct compile: compile_visitor<compile> {
             std::unordered_set<const variable *> _generated;
             std::unordered_map<const term *, reg_t> _flattened;
@@ -190,13 +179,13 @@ namespace prolog0 {
     }
 
     template <typename Iterator>
-    varset analyze_environment(varset first, Iterator begin, Iterator end) {
-        varset out;
+    varmap<reg_t> analyze_environment(varset first, Iterator begin, Iterator end) {
+        varmap<reg_t> out;
         for (auto it = begin; it != end; ++it) {
             auto m = get_names(it->get());
             for (const auto &v: m) {
                 if (first.find(v) != first.end()) {
-                    out.insert(v);
+                    out[v] = -out.size() - 1;
                 }
                 first.insert(v);
             }
@@ -211,16 +200,15 @@ namespace prolog0 {
         size_t env_size = env.size();
         if (env_size) EMIT_INST(allocate, env_size);
         varset seen;
-        varmap<reg_t> regs;
         for (auto &t: qry->terms) {
-            seen = compile_query_term(_o, t.get(), std::move(seen), env, regs);
+            seen = compile_query_term(_o, t.get(), std::move(seen), &env);
         }
         if (env_size) EMIT_INST(deallocate);
     }
 
     void compile_fact(inst_stream &_o, const fact *f) {
-        varmap<reg_t> vars;
-        compile_program_term(_o, f->_str.get(), {}, {}, vars);
+        varmap<reg_t> empty_env;
+        compile_program_term(_o, f->_str.get(), {}, &empty_env);
         EMIT_INST(proceed);
     }
 
@@ -236,9 +224,9 @@ namespace prolog0 {
         varset seen;
         varmap<reg_t> vars;
         if (env_size) EMIT_INST(allocate, env_size);
-        seen = compile_program_term(_o, r->head.get(), std::move(seen), env, vars);
+        seen = compile_program_term(_o, r->head.get(), std::move(seen), &env);
         for (auto &t: r->tail) {
-            seen = compile_query_term(_o, t.get(), std::move(seen), env, vars);
+            seen = compile_query_term(_o, t.get(), std::move(seen), &env);
         }
         if (env_size) EMIT_INST(deallocate);
     }
