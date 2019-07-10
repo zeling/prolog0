@@ -11,7 +11,6 @@ add_library(prolog0 STATIC
         src/ast.cc
         src/wam.cc
         src/inst.cc
-        src/codegen.cc
         src/parser.cc
         src/scanner.cc
         src/token.cc
@@ -22,5 +21,5 @@ add_library(prolog0 STATIC
 add_executable(prolog0-repl src/main.cc)
 target_link_libraries(prolog0-repl prolog0 readline)
 
-add_executable(test_main test/test_parser.cpp test/test_main.cpp test/test_codegen.cpp)
+add_executable(test_main test/test_parser.cpp test/test_main.cpp)
 target_link_libraries(test_main prolog0)

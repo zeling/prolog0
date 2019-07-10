@@ -2,12 +2,12 @@
 // Created by 冯泽灵 on 2017/1/2.
 //
 
-#include <assert.h>
 #include "token.h"
+#include <assert.h>
 
 static const char *token_names[] = {
 #define T(t, v) #t,
-        TOKEN_LIST(T)
+    TOKEN_LIST(T)
 #undef T
 };
 
@@ -18,6 +18,4 @@ std::string token::literal() {
     return std::move(ret);
 }
 
-std::string token::name() const {
-    return token_names[_type];
-}
+std::string token::name() const { return token_names[_type]; }

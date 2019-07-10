@@ -1,36 +1,35 @@
 #pragma once
 
-#include <string>
-#include <experimental/optional>
 #include "ast.h"
+#include <experimental/optional>
+#include <string>
 
-#define TOKEN_LIST(T)  \
-    T(LPAREN, "(")     \
-    T(RPAREN, ")")     \
-    T(COMMA, ",")      \
-    T(PERIOD, ".")     \
-    T(CUT, "!")        \
-    T(COLONDASH, ":-") \
-    T(QMDASH, "?-")    \
-                       \
-    T(FUNCTOR, 0)      \
-    T(VARIABLE, 0)     \
-                       \
-    T(EOS, "EOS")      \
+#define TOKEN_LIST(T)                                                          \
+    T(LPAREN, "(")                                                             \
+    T(RPAREN, ")")                                                             \
+    T(COMMA, ",")                                                              \
+    T(PERIOD, ".")                                                             \
+    T(CUT, "!")                                                                \
+    T(COLONDASH, ":-")                                                         \
+    T(QMDASH, "?-")                                                            \
+                                                                               \
+    T(FUNCTOR, 0)                                                              \
+    T(VARIABLE, 0)                                                             \
+                                                                               \
+    T(EOS, "EOS")
 
 namespace stdx = std::experimental;
 
 class token {
 
-public:
+  public:
     enum type {
 #define T(t, v) t,
-        TOKEN_LIST(T)
-        NUM_TOKENS
+        TOKEN_LIST(T) NUM_TOKENS
 #undef T
     };
 
-private:
+  private:
     type _type;
 
     /*
@@ -51,24 +50,24 @@ private:
 
     stdx::optional<std::string> _literal = {};
 
-public:
+  public:
     /*
-    token(type type, unsigned long row, unsigned long col, std::string filename, std::string literal)
-        : _type(type), _pos(row, col, std::move(filename)), _literal(std::move(literal)) {}
+    token(type type, unsigned long row, unsigned long col, std::string filename,
+    std::string literal) : _type(type), _pos(row, col, std::move(filename)),
+    _literal(std::move(literal)) {}
         */
-    token(): _type(NUM_TOKENS) {}
-    token(type type): _type(type) {}
-    token(type type, std::string literal): _type(type), _literal(std::move(literal)) {}
+    token() : _type(NUM_TOKENS) {}
+    token(type type) : _type(type) {}
+    token(type type, std::string literal)
+        : _type(type), _literal(std::move(literal)) {}
     token(const token &) = delete;
     token(token &&) = default;
     token &operator=(token &&) = default;
     token &operator=(const token &) = delete;
 
-
     std::string literal();
     std::string name() const;
     type type() const { return _type; }
-
 
     bool operator==(const token &rhs) {
         if (_type != rhs._type) {
@@ -82,9 +81,5 @@ public:
         return true;
     }
 
-    bool operator!=(const token &rhs) {
-        return !(*this == rhs);
-    }
+    bool operator!=(const token &rhs) { return !(*this == rhs); }
 };
-
-
