@@ -9,7 +9,7 @@
 #include "ast.h"
 #include "inst.h"
 #include "wam.h"
-#include "llvm/Support/Casting.h"
+#include "casting.h"
 
 namespace prolog0 {
 
@@ -69,7 +69,7 @@ termmap<reg_t> flatten(const structure *s, varmap<reg_t> *env) {
             : _x_reg(start), _env(env) {
             reg_t arg = 1;
             for (auto &t : s->args) {
-                if (auto s = llvm::dyn_cast<structure>(t.get())) {
+                if (auto s = dyn_cast<structure>(t.get())) {
                     _flattened[s] = arg;
                 }
                 arg++;
@@ -139,7 +139,7 @@ varset compile_program_term(inst_stream &o, const structure *s, varset seen,
             EMIT_INST(get_structure, s->functor, _flattened[s]);
             for (auto &arg : s->args) {
                 reg_t reg = _flattened[arg.get()];
-                if (auto v = llvm::dyn_cast<variable>(arg.get())) {
+                if (auto v = dyn_cast<variable>(arg.get())) {
                     if (_varseen.find(v->name) == _varseen.end()) {
                         EMIT_INST(unify_variable, reg);
                         _varseen.insert(v->name);

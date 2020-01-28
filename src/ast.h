@@ -2,13 +2,13 @@
 
 #include <assert.h>
 #include <initializer_list>
-#include <llvm/Support/Casting.h>
 #include <memory>
 #include <ostream>
 #include <queue>
 #include <string>
 #include <vector>
 
+#include "casting.h"
 #include "util.h"
 
 namespace prolog0 {
@@ -53,6 +53,7 @@ struct functor {
 
     friend std::ostream &operator<<(std::ostream &o, const functor &f) {
         o << f.name << "/" << f.arity;
+	return o;
     }
 };
 
@@ -160,9 +161,9 @@ template <typename Visitor> struct ast_visitor {
     void visit_term(const term *t) {
         switch (t->kind()) {
         case term::variable:
-            return visit(llvm::cast<variable>(t));
+            return visit(cast<variable>(t));
         case term::structure:
-            return visit(llvm::cast<structure>(t));
+            return visit(cast<structure>(t));
         }
     }
 
@@ -171,7 +172,7 @@ template <typename Visitor> struct ast_visitor {
 
     void walk_preorder(const term *t) {
         visit(t);
-        if (auto s = llvm::dyn_cast<structure>(t)) {
+        if (auto s = dyn_cast<structure>(t)) {
             for (auto &sub : s->args) {
                 walk_preorder(sub.get());
             }
@@ -179,7 +180,7 @@ template <typename Visitor> struct ast_visitor {
     }
 
     void walk_postorder(const term *t) {
-        if (auto s = llvm::dyn_cast<structure>(t)) {
+        if (auto s = dyn_cast<structure>(t)) {
             for (auto &sub : s->args) {
                 walk_postorder(sub.get());
             }
@@ -194,7 +195,7 @@ template <typename Visitor> struct ast_visitor {
             auto h = q.front();
             q.pop();
             visit(h);
-            if (auto s = llvm::dyn_cast<structure>(h)) {
+            if (auto s = dyn_cast<structure>(h)) {
                 for (auto &sub : s->args) {
                     q.push(sub.get());
                 }
@@ -206,9 +207,9 @@ template <typename Visitor> struct ast_visitor {
     void visit_program(const program *p) {
         switch (p->kind()) {
         case program::fact:
-            return visit(llvm::cast<fact>(p));
+            return visit(cast<fact>(p));
         case program::rule:
-            return visit(llvm::cast<rule>(p));
+            return visit(cast<rule>(p));
         }
     }
     EMPTY_VISIT(rule);
@@ -217,9 +218,9 @@ template <typename Visitor> struct ast_visitor {
     void visit_ast(const ast *a) {
         switch (a->kind()) {
         case ast::program:
-            return visit(llvm::cast<program>(a));
+            return visit(cast<program>(a));
         case ast::query:
-            return visit(llvm::cast<query>(a));
+            return visit(cast<query>(a));
         }
     }
 };

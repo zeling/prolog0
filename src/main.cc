@@ -8,7 +8,7 @@
 #include "inst.h"
 #include "parser.h"
 #include "wam.h"
-#include "llvm/Support/Casting.h"
+#include "casting.h"
 
 #include <readline/history.h>
 #include <readline/readline.h>
@@ -57,14 +57,14 @@ int main() {
                         std::cout << *i << std::endl;
                     }
                     //                    if (auto f =
-                    //                    llvm::dyn_cast<fact>(prg.get())) {
+                    //                    dyn_cast<fact>(prg.get())) {
                     //                        compile_program_term(s,
                     //                        f->_str.get()); for (auto i: s) {
                     //                            std::cout << *i << std::endl;
                     //                        }
                     //                    }
                     //                    dumb_visitor v;
-                    //                    v.visit(*llvm::dyn_cast<fact>(prg.get()));
+                    //                    v.visit(*dyn_cast<fact>(prg.get()));
                     //                cg.compile_program(prg.get());
                     //                cg.print_to_stream(std::cout);
                 }
