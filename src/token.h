@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ast.h"
-#include <experimental/optional>
+#include <optional>
 #include <string>
 
 #define TOKEN_LIST(T)                                                          \
@@ -17,8 +17,6 @@
     T(VARIABLE, 0)                                                             \
                                                                                \
     T(EOS, "EOS")
-
-namespace stdx = std::experimental;
 
 class token {
 
@@ -48,7 +46,7 @@ class token {
     } _pos;
      */
 
-    stdx::optional<std::string> _literal = {};
+    std::optional<std::string> _literal = {};
 
   public:
     /*

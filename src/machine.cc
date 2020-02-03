@@ -1,8 +1,8 @@
+#include <string.h>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
-#include "endian.h"
 #include "inst.h"
 #include "machine.h"
 
@@ -35,7 +35,9 @@ template <typename Integral, size_t S = sizeof(Integral)> struct read_integral {
 #define DECLARE_READ_INTEGRAL(size)                                            \
     template <typename Integral> struct read_integral<Integral, size> {        \
         Integral do_read(uint##size##_t *x) {                                  \
-            return be##size##toh(*reinterpret_cast<uint##size##_t *>(x));      \
+            uint##size##_t r;                                                  \
+            memcpy(&r, x, sizeof(r));                                          \
+            return r;                                                          \
         }                                                                      \
     }
 

@@ -2,9 +2,10 @@
 // Created by 冯泽灵 on 2017/1/2.
 //
 
-#include <algorithm>
-#include <iterator>
 #include "scanner.h"
+#include <algorithm>
+#include <cctype>
+#include <iterator>
 
 /* return tokens, NUM_TOKENS is returned if not recognized */
 scanner::token_type scanner::do_scan() {
@@ -12,39 +13,43 @@ scanner::token_type scanner::do_scan() {
     char ch;
     _input.get(ch);
     switch (ch) {
-        case '(':
-            return token_type::LPAREN;
-        case ')':
-            return token_type::RPAREN;
-        case ',':
-            return token_type::COMMA;
-        case '.':
-            return token_type::PERIOD;
-        case '!':
-            return token_type::CUT;
-        case ':':
-            _input.get(ch);
-            if (ch == '-') return token_type::COLONDASH;
-            else return token_type::NUM_TOKENS;
-        case '?':
-            _input.get(ch);
-            if (ch == '-') return token_type::QMDASH;
-            else return token_type::NUM_TOKENS;
-        case EOF:
-        case '\0':
-            return token_type::EOS;
-        default:
-            if (std::isupper(ch)) {
-                _input.unget();
-                do_collect_literal();
-                return token_type::VARIABLE;
-            } else if (std::islower(ch)) {
-                _input.unget();
-                do_collect_literal();
-                return token_type::FUNCTOR;
-            } else {
-                return token_type::NUM_TOKENS;
-            }
+    case '(':
+        return token_type::LPAREN;
+    case ')':
+        return token_type::RPAREN;
+    case ',':
+        return token_type::COMMA;
+    case '.':
+        return token_type::PERIOD;
+    case '!':
+        return token_type::CUT;
+    case ':':
+        _input.get(ch);
+        if (ch == '-')
+            return token_type::COLONDASH;
+        else
+            return token_type::NUM_TOKENS;
+    case '?':
+        _input.get(ch);
+        if (ch == '-')
+            return token_type::QMDASH;
+        else
+            return token_type::NUM_TOKENS;
+    case EOF:
+    case '\0':
+        return token_type::EOS;
+    default:
+        if (std::isupper(ch)) {
+            _input.unget();
+            do_collect_literal();
+            return token_type::VARIABLE;
+        } else if (std::islower(ch)) {
+            _input.unget();
+            do_collect_literal();
+            return token_type::FUNCTOR;
+        } else {
+            return token_type::NUM_TOKENS;
+        }
     }
 }
 
@@ -72,9 +77,7 @@ token scanner::next() {
     return token(type);
 }
 
-void scanner::push_back(token t) {
-    _look_ahead.emplace(std::move(t));
-}
+void scanner::push_back(token t) { _look_ahead.emplace(std::move(t)); }
 
 scanner::token_type scanner::peek() {
     auto tok = next();

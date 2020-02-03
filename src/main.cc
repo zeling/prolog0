@@ -10,11 +10,15 @@
 #include "wam.h"
 #include "casting.h"
 
+#ifdef HAS_READLINE
 #include <readline/history.h>
 #include <readline/readline.h>
+#endif
 #include <vector>
 
 static char *line_read = nullptr;
+
+#ifdef HAS_READLINE
 void rl_gets() {
     if (line_read) {
         ::free(line_read);
@@ -25,6 +29,11 @@ void rl_gets() {
     if (line_read && *line_read)
         add_history(line_read);
 }
+#else
+void rl_gets() {
+
+}
+#endif
 
 int main() {
     using namespace prolog0;
@@ -35,20 +44,15 @@ int main() {
             std::istringstream iss(line_read);
             scanner sc(iss);
             parser p(sc);
-            //            codegen cg;
             try {
                 inst_stream s;
                 if (sc.peek() == token::type::QMDASH) {
                     /* its a query */
                     auto qry = p.parse_query();
                     compile_query(s, qry.get());
-                    //                    compile_query_term(s,
-                    //                    qry->terms[0].get());
                     for (auto i : s) {
                         std::cout << *i << std::endl;
                     }
-                    //                cg.compile_query_term(qry.get());
-                    //                cg.print_to_stream(std::cout);
                 } else {
                     /* its not a query */
                     auto prg = p.parse_program();
@@ -56,17 +60,6 @@ int main() {
                     for (auto i : s) {
                         std::cout << *i << std::endl;
                     }
-                    //                    if (auto f =
-                    //                    dyn_cast<fact>(prg.get())) {
-                    //                        compile_program_term(s,
-                    //                        f->_str.get()); for (auto i: s) {
-                    //                            std::cout << *i << std::endl;
-                    //                        }
-                    //                    }
-                    //                    dumb_visitor v;
-                    //                    v.visit(*dyn_cast<fact>(prg.get()));
-                    //                cg.compile_program(prg.get());
-                    //                cg.print_to_stream(std::cout);
                 }
             } catch (const parser_error &e) {
                 std::cout << "parse error: " << e.what() << std::endl;

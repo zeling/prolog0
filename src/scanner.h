@@ -1,7 +1,7 @@
 #pragma once
 
-#include <iostream>
 #include "token.h"
+#include <iostream>
 
 class scanner {
     std::istream &_input;
@@ -12,13 +12,11 @@ class scanner {
     token_type do_scan();
     void do_collect_literal();
 
-    stdx::optional<token> _look_ahead;
+    std::optional<token> _look_ahead;
 
-public:
-    explicit scanner(std::istream &input): _input(input) {}
+  public:
+    explicit scanner(std::istream &input) : _input(input) {}
     token next();
     token_type peek();
     void push_back(token);
 };
-
-
